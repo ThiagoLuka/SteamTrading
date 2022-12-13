@@ -11,7 +11,6 @@ class SteamUser:
         self.__steam_alias: str = user_data['steam_alias']
         self.__user_id = self.__save_user()
         self.__crawler = SteamWebCrawler(self.__steam_id, user_data)
-        self.__inventory = SteamInventory.get_last_saved_inventory_from_db(self.__user_id)
 
     @property
     def steam_id(self) -> str:
@@ -41,7 +40,7 @@ class SteamUser:
 
         self.__get_trading_cards_of_new_games()
 
-    def download_inventory(self) -> None:
+    def update_inventory(self) -> None:
         status, result = self.__crawler.interact(
             'get_inventory',
             logged_in=True,
@@ -51,13 +50,9 @@ class SteamUser:
         if status != 200:
             print(f'\n{status}: {result}\n')
             return
-        self.__inventory = result
-
-    def inventory_downloaded(self) -> bool:
-        return not self.__inventory.empty
 
     def open_booster_packs(self, game_name: str) -> None:
-        bp_assets_id_list = self.__inventory.get_booster_pack_assets_id(
+        bp_assets_id_list = SteamInventory.get_booster_pack_assets_id(
             user_id=self.__user_id, game_name=game_name
         )
         status, result = self.__crawler.interact(
