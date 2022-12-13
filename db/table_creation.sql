@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS user_badges
   );
 
 ALTER TABLE user_badges
-ADD COLUMN active BOOL DEFAULT True;
+    ADD COLUMN IF NOT EXISTS active BOOL DEFAULT True;
 
 CREATE TABLE IF NOT EXISTS trading_cards
   (

@@ -4,6 +4,7 @@ from user_interfaces.GenericUI import GenericUI
 from web_crawlers.SteamWebPage import SteamWebPage
 from data_models.SteamInventory import SteamInventory
 from data_models.SteamGames import SteamGames
+from data_models.SteamTradingCards import SteamTradingCards
 
 
 class InventoryPage(SteamWebPage, name='get_inventory'):
@@ -29,6 +30,7 @@ class InventoryPage(SteamWebPage, name='get_inventory'):
 
         # Load
         descripts.save('descriptions')
+        SteamTradingCards.set_relationship_with_item_descripts(SteamInventory.get_all('descriptions').df)
         assets.save('assets', user_id)
 
         inventory = SteamInventory.get_last_saved_inventory_from_db(user_id)
@@ -126,7 +128,7 @@ class InventoryPage(SteamWebPage, name='get_inventory'):
         return type_ids
 
     @staticmethod
-    def __save_new_item_types(type_names: dict):
+    def __save_new_item_types(type_names: dict) -> None:
         saved_type_ids = SteamInventory.get_item_types()
         for type_id in type_names.keys():
             if int(type_id) not in saved_type_ids:
@@ -135,7 +137,7 @@ class InventoryPage(SteamWebPage, name='get_inventory'):
                 ).save('item_types')
 
     @staticmethod
-    def __get_url_names(descripts_raw: list[dict]):
+    def __get_url_names(descripts_raw: list[dict]) -> list[str]:
         # just like market_fee_app, market_name is not as reliable as market_hash_name
         # url_names = [requests.utils.quote(d['market_name']) for d in descripts_raw]
         def get_url_name_from_market_hash_name(market_hash_name):

@@ -6,6 +6,7 @@ from user_interfaces.GenericUI import GenericUI
 from web_crawlers.SteamWebPage import SteamWebPage
 from data_models.SteamGames import SteamGames
 from data_models.SteamTradingCards import SteamTradingCards
+from data_models.SteamInventory import SteamInventory
 
 
 class GameCardsPage(SteamWebPage, name='get_trading_cards'):
@@ -38,6 +39,8 @@ class GameCardsPage(SteamWebPage, name='get_trading_cards'):
 
             trading_cards.save()
             GenericUI.progress_completed(progress=index + 1, total=progress_total, text=progress_text)
+
+        SteamTradingCards.set_relationship_with_item_descripts(SteamInventory.get_all('descriptions').df)
 
     def __extract_raw_gamecards_page(self, cookies: dict, steam_id: str, market_id: str) -> html.HtmlElement:
         url = f"{super().BASESTEAMURL}profiles/{steam_id}/gamecards/{market_id}"
