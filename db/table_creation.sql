@@ -81,4 +81,11 @@ CREATE TABLE IF NOT EXISTS item_assets
 
 ALTER TABLE item_assets
 	ALTER COLUMN created_at TYPE TIMESTAMP,
-	ADD COLUMN removed_at TIMESTAMP;
+	ADD COLUMN IF NOT EXISTS removed_at TIMESTAMP;
+
+CREATE TABLE IF NOT EXISTS trading_cards_to_item_descript
+  (
+    trading_card_id INT REFERENCES trading_cards NOT NULL,
+   	description_id INT REFERENCES item_descriptions NOT NULL,
+   	foil BOOL NOT NULL
+  );
