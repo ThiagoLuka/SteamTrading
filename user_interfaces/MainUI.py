@@ -6,15 +6,15 @@ class MainUI:
     @staticmethod
     def run() -> int:
         print(
-            '\nMENU PRINCIPAL\n'
-            '1 - Gerenciar perfis da steam\n'
-            '2 - Scrap profile badges page\n'
+            '\n-- MAIN MENU --\n'
+            '1 - Manage steam users\n'
+            '2 - Scrap for user badges\n'
             '3 - Update inventory\n'
-            '4 - Abrir booster packs\n'
-            '0 - Sair'
+            '4 - Open booster packs\n'
+            '0 - Exit'
         )
         return InputValidation.int_within_range(0, 4)
 
     @staticmethod
     def goodbye() -> None:
-        print('\nAté mais!')
+        print('\nSee you later!')

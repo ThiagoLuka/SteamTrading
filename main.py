@@ -20,7 +20,7 @@ if __name__ == '__main__':
         if command == 3:
             user.update_inventory()
         if command == 4:
-            game_name = GenericUI.get_string('Digite o nome do jogo: ')
+            game_name = GenericUI.get_game_name()
             user.open_booster_packs(game_name)
 
         if command == 0:

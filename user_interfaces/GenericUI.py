@@ -8,12 +8,17 @@ class GenericUI:
         print('Not implemented')
 
     @staticmethod
-    def continuar() -> bool:
-        return InputValidation.continuar()
+    def remain_in_menu() -> bool:
+        return InputValidation.yes_or_no('Remain in this menu? (y/n) ')
 
     @staticmethod
     def get_string(text_to_show: str) -> str:
         return str(input(text_to_show))
+
+    @staticmethod
+    def get_game_name() -> str:
+        # add game_name validation
+        return GenericUI.get_string('Game name: ')
 
     @staticmethod
     def progress_completed(progress: int, total: int, text: str = '') -> None:
