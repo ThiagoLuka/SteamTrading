@@ -9,7 +9,11 @@ class GenericUI:
 
     @staticmethod
     def remain_in_menu() -> bool:
-        return InputValidation.yes_or_no('Remain in this menu? (y/n) ')
+        return InputValidation.yes_or_no('Remain in this menu?')
+
+    @staticmethod
+    def update_inventory() -> bool:
+        return InputValidation.yes_or_no('Update inventory?')
 
     @staticmethod
     def get_string(text_to_show: str) -> str:
