@@ -60,7 +60,7 @@ class SteamInventory(PandasDataModel):
             return
 
         new_inv = self.df
-        last_inv = SteamInventory.get_last_saved_inventory_from_db(user_id)
+        last_inv = SteamInventory.get_current_inventory_from_db(user_id)
         to_remove = PandasUtils.df_set_difference(last_inv.df, new_inv, 'asset_id')
         to_upsert_without_id = PandasUtils.df_set_difference(new_inv, last_inv.df, ['asset_id', 'marketable'])
         to_upsert = pd.merge(to_upsert_without_id.drop(columns='id'), last_inv.df[['id', 'asset_id']], how='left')
@@ -104,9 +104,13 @@ class SteamInventory(PandasDataModel):
         return SteamInventory.__from_db(table, data)
 
     @staticmethod
-    def get_last_saved_inventory_from_db(user_id: int) -> 'SteamInventory':
+    def get_current_inventory_from_db(user_id: int) -> 'SteamInventory':
         data = SteamInventoryRepository.get_current_by_user_id(user_id)
         return SteamInventory.__from_db('assets', data)
+
+    @staticmethod
+    def get_current_inventory_size(user_id: int) -> int:
+        return SteamInventoryRepository.get_current_size_by_user_id(user_id)
 
     @staticmethod
     def get_item_types() -> dict:
@@ -114,7 +118,22 @@ class SteamInventory(PandasDataModel):
         return dict(data)
 
     @staticmethod
+    def get_overview_marketable_cards(user_id: int) -> dict:
+        data = SteamInventoryRepository.get_overview_marketable_cards(user_id)
+        return dict(data)
+
+    @staticmethod
     def get_booster_pack_assets_id(user_id: int, game_name: str) -> list:
         data = SteamInventoryRepository.get_booster_pack_assets_id(user_id, game_name)
         assets_id_list = [row[0] for row in data]
         return assets_id_list
+
+    @staticmethod
+    def get_marketable_cards_asset_ids(user_id: int, game_name: str) -> dict:
+        data = SteamInventoryRepository.get_marketable_cards_asset_ids(user_id, game_name)
+        data_formatted = {f'{row[0]}-{row[1]}': [] for row in data}
+        for card_index in data_formatted.keys():
+            data_formatted[card_index] = [
+                row[2] for row in data if card_index == f'{row[0]}-{row[1]}'
+            ]
+        return data_formatted

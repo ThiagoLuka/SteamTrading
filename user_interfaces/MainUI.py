@@ -10,7 +10,7 @@ class MainUI:
             '1 - Manage steam users\n'
             '2 - Scrap for user badges\n'
             '3 - Update inventory\n'
-            '4 - Open booster packs\n'
+            '4 - Trader menu\n'
             '0 - Exit'
         )
         return InputValidation.int_within_range(0, 4)

@@ -13,6 +13,10 @@ class SteamUser:
         self.__crawler = SteamWebCrawler(self.__steam_id, user_data)
 
     @property
+    def user_id(self) -> int:
+        return self.__user_id
+
+    @property
     def steam_id(self) -> str:
         return self.__steam_id
 
@@ -58,6 +62,17 @@ class SteamUser:
         status, result = self.__crawler.interact(
             'open_booster_pack',
             booster_pack_assets_ids=bp_assets_id_list,
+            steam_alias=self.__steam_alias,
+        )
+        if status != 200:
+            print(f'\n{status}: {result}\n')
+            return
+
+    def create_sell_listing(self, asset_id: str, price: int) -> None:
+        status, result = self.__crawler.interact(
+            'sell_listing',
+            asset_id=asset_id,
+            price=price,
             steam_alias=self.__steam_alias,
         )
         if status != 200:
