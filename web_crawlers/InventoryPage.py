@@ -26,14 +26,14 @@ class InventoryPage(SteamWebPage, name='get_inventory'):
 
         # Transform
         descripts: SteamInventory = self.__transform_raw_descriptions(descripts_raw)
-        assets: SteamInventory = self.__transform_raw_assets(assets_raw, user_id)
+        assets: SteamInventory = self.__transform_raw_assets(assets_raw, descripts_raw, user_id)
 
         # Load
         descripts.save('descriptions')
         SteamTradingCards.set_relationship_with_item_descripts(SteamInventory.get_all('descriptions').df)
         assets.save('assets', user_id)
 
-        inventory = SteamInventory.get_last_saved_inventory_from_db(user_id)
+        inventory = SteamInventory.get_current_inventory_from_db(user_id)
         return inventory
 
     def __download_raw_inventory(self, steam_id: str, cookies: dict) -> tuple[list, list]:
@@ -78,12 +78,12 @@ class InventoryPage(SteamWebPage, name='get_inventory'):
         )
         return descripts
 
-    @staticmethod
-    def __transform_raw_assets(assets_raw: list[dict], user_id: int) -> SteamInventory:
+    def __transform_raw_assets(self, assets_raw: list[dict], descripts_raw: list[dict], user_id: int) -> SteamInventory:
         user_ids = [user_id] * len(assets_raw)
         class_ids = [a['classid'] for a in assets_raw]
         asset_ids = [a['assetid'] for a in assets_raw]
-        assets = SteamInventory(user_id=user_ids, class_id=class_ids, asset_id=asset_ids)
+        marketables = self.__get_asset_marketable(assets_raw, descripts_raw)
+        assets = SteamInventory(user_id=user_ids, class_id=class_ids, asset_id=asset_ids, marketable=marketables)
         return assets
 
     def __get_game_ids(self, descripts_raw: list[dict]) -> list:
@@ -148,3 +148,10 @@ class InventoryPage(SteamWebPage, name='get_inventory'):
             return url_name
         url_names = [get_url_name_from_market_hash_name(d['market_hash_name']) for d in descripts_raw]
         return url_names
+
+    @staticmethod
+    def __get_asset_marketable(assets_raw: list[dict], descripts_raw: list[dict]) -> list:
+        instance_id_marketable: dict = {d['instanceid']: d['marketable'] for d in descripts_raw}
+        asset_instances = [a['instanceid'] for a in assets_raw]
+        marketables = [instance_id_marketable[instance] for instance in asset_instances]
+        return marketables

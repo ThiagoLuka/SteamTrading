@@ -81,7 +81,9 @@ CREATE TABLE IF NOT EXISTS item_assets
 
 ALTER TABLE item_assets
 	ALTER COLUMN created_at TYPE TIMESTAMP,
-	ADD COLUMN IF NOT EXISTS removed_at TIMESTAMP;
+	ADD COLUMN IF NOT EXISTS removed_at TIMESTAMP,
+	ADD COLUMN IF NOT EXISTS marketable BOOL DEFAULT False,
+	ADD CONSTRAINT unique_asset_id UNIQUE (asset_id);
 
 CREATE TABLE IF NOT EXISTS trading_cards_to_item_descript
   (

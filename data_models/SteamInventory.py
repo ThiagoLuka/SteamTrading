@@ -8,9 +8,9 @@ from data_models.PandasUtils import PandasUtils
 
 class SteamInventory(PandasDataModel):
 
-    __columns = ['id', 'user_id', 'game_id', 'name', 'type_id', 'class_id', 'asset_id', 'url_name']
+    __columns = ['id', 'user_id', 'game_id', 'name', 'type_id', 'class_id', 'asset_id', 'marketable', 'url_name']
     __columns_description = ['id', 'game_id', 'class_id', 'type_id', 'name', 'url_name']
-    __columns_asset = ['id', 'user_id', 'description_id', 'asset_id', 'created_at', 'removed_at']
+    __columns_asset = ['id', 'user_id', 'description_id', 'asset_id', 'created_at', 'removed_at', 'marketable']
     __columns_item_type = ['id', 'name']
 
     def __init__(self, table: str = '', **data):
@@ -62,25 +62,24 @@ class SteamInventory(PandasDataModel):
         new_inv = self.df
         last_inv = SteamInventory.get_last_saved_inventory_from_db(user_id)
         to_remove = PandasUtils.df_set_difference(last_inv.df, new_inv, 'asset_id')
-        to_save = PandasUtils.df_set_difference(new_inv, last_inv.df, 'asset_id')
+        to_upsert_without_id = PandasUtils.df_set_difference(new_inv, last_inv.df, ['asset_id', 'marketable'])
+        to_upsert = pd.merge(to_upsert_without_id.drop(columns='id'), last_inv.df[['id', 'asset_id']], how='left')
 
         if not to_remove.empty:
-            to_remove = to_remove[['id', 'removed_at']].copy()
             to_remove['removed_at'] = str(datetime.now())
             zipped_data = PandasUtils.zip_df_columns(to_remove, ['id', 'removed_at'])
             SteamInventoryRepository.update_removed_assets(zipped_data)
 
-        if not to_save.empty:
-            to_save = to_save[['user_id', 'class_id', 'asset_id']].copy()
+        if not to_upsert.empty:
             class_id_to_descript_id = SteamInventory.__class_id_to_description_id_relationship()
-            to_save = pd.merge(to_save, class_id_to_descript_id, how='left')
-            to_save['created_at'] = str(datetime.now())
-            to_save['removed_at'] = 'None'
+            to_upsert = pd.merge(to_upsert, class_id_to_descript_id, how='left')
+            to_upsert['created_at'] = str(datetime.now())
+            to_upsert['removed_at'] = 'None'
 
             cols_to_insert = self.__get_columns(table)
             cols_to_insert.remove('id')
-            zipped_data = PandasUtils.zip_df_columns(to_save, cols_to_insert)
-            SteamInventoryRepository.insert_new_assets(zipped_data, cols_to_insert)
+            zipped_data = PandasUtils.zip_df_columns(to_upsert, cols_to_insert)
+            SteamInventoryRepository.upsert_new_assets(zipped_data, cols_to_insert)
 
     @staticmethod
     def __last_saved_date(user_id: int) -> str:
