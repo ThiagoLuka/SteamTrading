@@ -9,7 +9,7 @@ class SteamBadges(PandasDataModel):
 
     __columns = ['id', 'name', 'level', 'experience', 'foil', 'game_id', 'pure_badge_page_id', 'unlocked_at']
     __columns_game = ['id', 'game_id', 'name', 'level', 'foil']
-    __columns_pure = ['id', 'pure_badge_page_id', 'name']
+    __columns_pure = ['id', 'page_id', 'name']
     __columns_user = ['id', 'user_id', 'game_badge_id', 'pure_badge_id', 'experience', 'unlocked_at', 'active']
 
     def __init__(self, badge_type: str = '', **data):
@@ -40,8 +40,9 @@ class SteamBadges(PandasDataModel):
         )
 
         pure_badges = self.df[~self.df['pure_badge_page_id'].isna()]
+        pure_badges.rename(columns={'pure_badge_page_id': 'page_id'}, inplace=True)
         self.__save_by_type(
-            'pure', pure_badges, check_diff_on_columns=['pure_badge_page_id', 'name']
+            'pure', pure_badges, check_diff_on_columns=['page_id', 'name']
         )
 
         user_badges = self.__user_badges_with_other_tables_references(user_id)
@@ -62,12 +63,9 @@ class SteamBadges(PandasDataModel):
             cols_to_insert.remove('id')
             zipped_data = PandasUtils.zip_df_columns(to_save, cols_to_insert)
             if badge_type == 'game':
-                SteamBadgesRepository.upsert_multiple_game_badges(zipped_data)
-            if badge_type == 'pure':
-                cols_to_insert[0] = cols_to_insert[0].replace('pure_badge_page_id', 'page_id')
-                SteamBadgesRepository.insert_multiple_badges(badge_type, cols_to_insert, zipped_data)
-            if badge_type == 'user':
-                SteamBadgesRepository.insert_multiple_badges(badge_type, cols_to_insert, zipped_data)
+                SteamBadgesRepository.upsert_multiple_game_badges(zipped_data, cols_to_insert)
+            if badge_type == 'pure' or badge_type == 'user':
+                SteamBadgesRepository.insert_multiple_badges(badge_type, zipped_data, cols_to_insert)
 
     def __user_badges_with_other_tables_references(self, user_id: int) -> pd.DataFrame:
         saved_game_badges = self.get_all('game').df
@@ -117,5 +115,6 @@ class SteamBadges(PandasDataModel):
 
     @staticmethod
     def get_all(badge_type: str = 'user') -> 'SteamBadges':
-        data = SteamBadgesRepository.get_all(badge_type)
+        cols = SteamBadges.__get_columns(badge_type)
+        data = SteamBadgesRepository.get_all(badge_type, cols)
         return SteamBadges.__from_db(badge_type, data)

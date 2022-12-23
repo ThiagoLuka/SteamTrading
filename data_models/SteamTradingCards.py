@@ -36,11 +36,12 @@ class SteamTradingCards(PandasDataModel):
             cols_to_insert = self.__get_columns()
             cols_to_insert.remove('id')
             zipped_data = PandasUtils.zip_df_columns(new_and_update, cols_to_insert)
-            SteamTradingCardsRepository.insert_multiple_trading_cards(zipped_data)
+            SteamTradingCardsRepository.insert_multiple_trading_cards(zipped_data, cols_to_insert)
 
     @staticmethod
     def get_all(table: str = 'trading_cards') -> 'SteamTradingCards':
-        data = SteamTradingCardsRepository.get_all(table)
+        cols = SteamTradingCards.__get_columns(table)
+        data = SteamTradingCardsRepository.get_all(table, cols)
         return SteamTradingCards.__from_db(table, data)
 
     @staticmethod

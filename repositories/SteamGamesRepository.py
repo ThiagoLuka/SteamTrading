@@ -5,8 +5,8 @@ from db.DBController import DBController
 class SteamGamesRepository:
 
     @staticmethod
-    def get_all() -> list[tuple]:
-        query = f"""SELECT * FROM games;"""
+    def get_all(columns: list) -> list[tuple]:
+        query = f"""SELECT {', '.join(columns)} FROM games;"""
         result = DBController.execute(query=query, get_result=True)
         return result
 
@@ -25,28 +25,28 @@ class SteamGamesRepository:
         return result
 
     @staticmethod
-    def get_by_name(name: str) -> list[tuple]:
+    def get_by_name(name: str, columns: list) -> list[tuple]:
         query = f"""
-            SELECT * FROM games
+            SELECT {', '.join(columns)} FROM games
             WHERE name = '{name}';
         """
         result = DBController.execute(query=query, get_result=True)
         return result
 
     @staticmethod
-    def get_by_market_id(market_id: str) -> list[tuple]:
+    def get_by_market_id(market_id: str, columns: list) -> list[tuple]:
         query = f"""
-            SELECT * FROM games
+            SELECT {', '.join(columns)} FROM games
             WHERE market_id = '{market_id}';
         """
         result = DBController.execute(query=query, get_result=True)
         return result
 
     @staticmethod
-    def upsert_single_game(name: str, market_id: str) -> None:
+    def upsert_single_game(name: str, market_id: str, columns: list) -> None:
         name = QueryBuilderPG.sanitize_string(name)
         query = f"""
-            INSERT INTO games (name, market_id)
+            INSERT INTO games ({', '.join(columns)})
             VALUES ('{name}', '{market_id}')
             ON CONFLICT (market_id) DO UPDATE
             SET name = EXCLUDED.name;
@@ -54,10 +54,10 @@ class SteamGamesRepository:
         DBController.execute(query=query)
 
     @staticmethod
-    def upsert_multiple_games(games: zip) -> None:
-        values = QueryBuilderPG.unzip_to_values_query_str(games)
+    def upsert_multiple_games(games: zip, columns: list) -> None:
+        values = QueryBuilderPG.unzip_to_query_values_str(games)
         query = f"""
-            INSERT INTO games (name, market_id)
+            INSERT INTO games ({', '.join(columns)})
             VALUES {values}
             ON CONFLICT (market_id) DO UPDATE
             SET name = EXCLUDED.name;

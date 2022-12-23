@@ -3,7 +3,7 @@
 class QueryBuilderPG:
 
     @staticmethod
-    def unzip_to_values_query_str(zipped_data: zip) -> str:
+    def unzip_to_query_values_str(zipped_data: zip) -> str:
         rows = []
         for row in zipped_data:
             values = []
@@ -22,14 +22,6 @@ class QueryBuilderPG:
         if "'" in string:
             string = string.replace("'", "''")
         return string
-
-    @staticmethod
-    def cols_to_insert_list_to_str(cols_list: list[str]) -> str:
-        return f"({', '.join(cols_list)})"
-
-    @staticmethod
-    def cols_to_get_list_to_str(cols_list: list[str]) -> str:
-        return f"{', '.join(cols_list)}"
 
     @staticmethod
     def __check_null(string: str) -> bool:

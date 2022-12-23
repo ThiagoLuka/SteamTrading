@@ -92,7 +92,8 @@ class SteamInventory(PandasDataModel):
 
     @staticmethod
     def __class_id_to_description_id_relationship() -> pd.DataFrame:
-        data = SteamInventoryRepository.get_all('descriptions')
+        cols = SteamInventory.__get_columns('descriptions')
+        data = SteamInventoryRepository.get_all('descriptions', cols)
         df_relationship = SteamInventory.__from_db('descriptions', data).df
         df_relationship = df_relationship[['id', 'class_id']].copy()
         df_relationship.rename(columns={'id': 'description_id'}, inplace=True)
@@ -100,12 +101,14 @@ class SteamInventory(PandasDataModel):
 
     @staticmethod
     def get_all(table: str = 'assets') -> 'SteamInventory':
-        data = SteamInventoryRepository.get_all(table)
+        cols = SteamInventory.__get_columns(table)
+        data = SteamInventoryRepository.get_all(table, cols)
         return SteamInventory.__from_db(table, data)
 
     @staticmethod
     def get_current_inventory_from_db(user_id: int) -> 'SteamInventory':
-        data = SteamInventoryRepository.get_current_by_user_id(user_id)
+        cols = SteamInventory.__get_columns('assets')
+        data = SteamInventoryRepository.get_current_by_user_id(user_id, cols)
         return SteamInventory.__from_db('assets', data)
 
     @staticmethod
@@ -114,7 +117,8 @@ class SteamInventory(PandasDataModel):
 
     @staticmethod
     def get_item_types() -> dict:
-        data = SteamInventoryRepository.get_all('types')
+        cols = SteamInventory.__get_columns('item_types')
+        data = SteamInventoryRepository.get_all('types', cols)
         return dict(data)
 
     @staticmethod

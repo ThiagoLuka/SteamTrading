@@ -16,7 +16,8 @@ class SteamUserRepository:
     @staticmethod
     def get_by_steam_id(steam_id: str) -> list[tuple]:
         query = f"""
-            SELECT * FROM users
+            SELECT id, steam_id, steam_alias
+            FROM users
             WHERE steam_id = '{steam_id}';
         """
         result = DBController.execute(query=query, get_result=True)

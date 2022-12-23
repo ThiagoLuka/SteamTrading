@@ -31,11 +31,12 @@ class SteamGames(PandasDataModel):
             cols_to_insert = self.__get_columns()
             cols_to_insert.remove('id')
             zipped_data = PandasUtils.zip_df_columns(new_and_update, cols_to_insert)
-            SteamGamesRepository.upsert_multiple_games(zipped_data)
+            SteamGamesRepository.upsert_multiple_games(zipped_data, cols_to_insert)
 
     @staticmethod
     def get_all() -> 'SteamGames':
-        data = SteamGamesRepository.get_all()
+        cols = SteamGames.__get_columns()
+        data = SteamGamesRepository.get_all(cols)
         return SteamGames.__from_db(data)
 
     @staticmethod
@@ -45,7 +46,8 @@ class SteamGames(PandasDataModel):
 
     @staticmethod
     def get_id_by_market_id(market_id: str) -> str:
-        result = SteamGamesRepository.get_by_market_id(market_id)
+        cols = SteamGames.__get_columns()
+        result = SteamGamesRepository.get_by_market_id(market_id, cols)
         return result[0][0]
 
     @staticmethod
