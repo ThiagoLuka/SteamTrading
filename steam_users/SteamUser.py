@@ -98,6 +98,6 @@ class SteamUser:
         saved = SteamUserRepository.get_by_steam_id(self.__steam_id)
         if not saved:
             SteamUserRepository.save_user(self.__steam_id, self.__steam_alias)
-        saved = SteamUserRepository.get_by_steam_id(self.__steam_id)
+            saved = SteamUserRepository.get_by_steam_id(self.__steam_id)
         user_id = saved[0][0]
         return user_id
