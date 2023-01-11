@@ -85,7 +85,7 @@ ALTER TABLE item_assets
 	ADD COLUMN IF NOT EXISTS marketable BOOL DEFAULT False,
 	ADD CONSTRAINT unique_asset_id UNIQUE (asset_id);
 
-CREATE TABLE IF NOT EXISTS trading_cards_to_item_descript
+CREATE TABLE IF NOT EXISTS trading_cards_to_item_descripts
   (
     trading_card_id INT REFERENCES trading_cards NOT NULL,
    	description_id INT REFERENCES item_descriptions NOT NULL,
