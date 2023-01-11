@@ -22,9 +22,10 @@ class SteamWebCrawler:
         concrete_web_page_reference = SteamWebPage.page_interactions[interaction_type]
         web_page = concrete_web_page_reference()
 
-        for user_data in kwargs.keys():
-            if user_data not in web_page.required_user_data():
-                return 400, f'missing user data: {user_data}'
+        required_data: list = web_page.required_user_data()
+        for req_data in required_data:
+            if req_data not in kwargs.keys():
+                return 400, f'missing user data: {req_data}'
 
         # getting needed cookies
         cookies = {}
@@ -45,7 +46,9 @@ class SteamWebCrawler:
         # executing interaction
         try:
             result = web_page.interact(cookies, **kwargs)
-            return 200, result
+            if result is None:
+                return 200, result
+            return result.status_code, result
         except Exception as e:
             return 500, e
 
