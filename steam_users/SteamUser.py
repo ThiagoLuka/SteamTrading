@@ -1,5 +1,8 @@
+from etl_pipelines.ScrapProfileBadgesPage import ScrapProfileBadgesPage
+from etl_pipelines.UpdateFullInventory import UpdateFullInventory
+from etl_pipelines.GetTradingCardsOfNewGames import GetTradingCardsOfNewGames
+from etl_pipelines.OpenGameBoosterPacks import OpenGameBoosterPacks
 from web_crawlers import SteamWebCrawler
-from data_models.SteamInventory import SteamInventory
 from data_models.SteamGames import SteamGames
 from repositories.SteamUserRepository import SteamUserRepository
 
@@ -32,41 +35,26 @@ class SteamUser:
         pass
 
     def get_badges(self, logged_in: bool = True) -> None:
-        status, result = self.__crawler.interact(
-            'get_badges',
+        ScrapProfileBadgesPage().run(
+            self.__crawler,
             logged_in=logged_in,
             user_id=self.__user_id,
-            steam_id=self.steam_id,
         )
-        if status != 200:
-            print(f'\n{status}: {result}\n')
-            return
-
-        self.__get_trading_cards_of_new_games()
+        GetTradingCardsOfNewGames().run(self.__crawler)
 
     def update_inventory(self) -> None:
-        status, result = self.__crawler.interact(
-            'get_inventory',
-            logged_in=True,
+        UpdateFullInventory().run(
+            self.__crawler,
             user_id=self.__user_id,
-            steam_id=self.steam_id,
         )
-        if status != 200:
-            print(f'\n{status}: {result}\n')
-            return
 
     def open_booster_packs(self, game_name: str) -> None:
-        bp_assets_id_list = SteamInventory.get_booster_pack_assets_id(
-            user_id=self.__user_id, game_name=game_name
-        )
-        status, result = self.__crawler.interact(
-            'open_booster_pack',
-            booster_pack_assets_ids=bp_assets_id_list,
+        OpenGameBoosterPacks().run(
+            self.__crawler,
+            user_id=self.__user_id,
             steam_alias=self.__steam_alias,
+            game_name=game_name
         )
-        if status != 200:
-            print(f'\n{status}: {result}\n')
-            return
 
     def create_sell_listing(self, asset_id: str, price: int) -> None:
         status, result = self.__crawler.interact(
@@ -74,21 +62,6 @@ class SteamUser:
             asset_id=asset_id,
             price=price,
             steam_alias=self.__steam_alias,
-        )
-        if status != 200:
-            print(f'\n{status}: {result}\n')
-            return
-
-    def __get_trading_cards_of_new_games(self) -> None:
-        games_to_get_trading_cards = SteamGames.get_all_without_trading_cards()
-        if games_to_get_trading_cards.empty:
-            return
-
-        status, result = self.__crawler.interact(
-            'get_trading_cards',
-            logged_in=True,
-            games=games_to_get_trading_cards,
-            steam_id=self.steam_id,
         )
         if status != 200:
             print(f'\n{status}: {result}\n')

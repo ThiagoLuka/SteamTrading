@@ -1,7 +1,7 @@
 import os
 import importlib
 
-from web_crawlers.SteamWebCrawler import SteamWebCrawler
+from .SteamWebCrawler import SteamWebCrawler
 
 
 for file in os.listdir(os.path.dirname(__file__)):

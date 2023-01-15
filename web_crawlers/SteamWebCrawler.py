@@ -1,6 +1,7 @@
-from typing import Any
+import requests
+from typing import Union
 
-from web_crawlers.SteamWebPage import SteamWebPage
+from .SteamWebPage import SteamWebPage
 
 
 class SteamWebCrawler:
@@ -13,7 +14,7 @@ class SteamWebCrawler:
         self.__set_cookies(data)
         # self.__web_session = None  # it should be implemented later
 
-    def interact(self, interaction_type: str, logged_in: bool = False, **kwargs) -> (int, Any):
+    def interact(self, interaction_type: str, logged_in = False, **kwargs) -> (int, Union[str, requests.Response]):
 
         # checking if data is good
         if interaction_type not in SteamWebPage.page_interactions.keys():
@@ -22,6 +23,7 @@ class SteamWebCrawler:
         concrete_web_page_reference = SteamWebPage.page_interactions[interaction_type]
         web_page = concrete_web_page_reference()
 
+        kwargs['steam_id'] = self.__steam_id
         required_data: list = web_page.required_user_data()
         for req_data in required_data:
             if req_data not in kwargs.keys():
@@ -46,8 +48,6 @@ class SteamWebCrawler:
         # executing interaction
         try:
             result = web_page.interact(cookies, **kwargs)
-            if result is None:
-                return 200, result
             return result.status_code, result
         except Exception as e:
             return 500, e
