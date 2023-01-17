@@ -45,7 +45,7 @@ class ScrapProfileBadgesPage:
             web_crawler: SteamWebCrawler, logged_in: bool, page: int = None
     ) -> (int, Union[requests.Response, str]):
         custom_status_code, response = web_crawler.interact(
-            'get_profile_badges',
+            'profile_badges',
             logged_in=logged_in,
             page=page,
         )

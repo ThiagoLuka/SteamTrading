@@ -13,16 +13,22 @@ class OpenBoosterPack(SteamWebPage, name='open_booster_pack'):
     def required_cookies() -> tuple:
         return 'sessionid', 'steamLoginSecure',
 
+    def generate_url(self, **kwargs) -> str:
+        steam_alias: str = kwargs['steam_alias']
+        return f'{super().BASESTEAMURL}id/{steam_alias}/ajaxunpackbooster/'
+
     def interact(self, cookies: dict, **kwargs) -> requests.Response:
         asset_id: list = kwargs['asset_id']
-        steam_alias: str = kwargs['steam_alias']
 
-        url = f"{super().BASESTEAMURL}id/{steam_alias}/ajaxunpackbooster/"
+        url = self.generate_url(**kwargs)
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+        }
         payload = {
             'communityitemid': asset_id,
-            'sessionid': cookies['sessionid']
+            'sessionid': cookies['sessionid'],
         }
-        headers = {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'}
-        response = requests.post(url, data=payload, headers=headers, cookies=cookies)
+
         # sometimes its response comes 500 even when the booster pack is opened. Go figure
+        response = requests.post(url, data=payload, headers=headers, cookies=cookies)
         return response

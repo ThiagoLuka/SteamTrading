@@ -3,20 +3,20 @@ import requests
 from .SteamWebPage import SteamWebPage
 
 
-class GameCardsPage(SteamWebPage, name='get_trading_cards'):
+class GameCardsPage(SteamWebPage, name='game_cards_page'):
 
     @staticmethod
     def required_user_data() -> tuple:
-        return 'steam_id', 'game_market_id',
+        return 'steam_alias', 'game_market_id',
 
-    @staticmethod
-    def required_cookies() -> tuple:
-        return ()
+    def generate_url(self, **kwargs) -> str:
+        steam_alias: str = kwargs['steam_alias']
+        game_market_id: str = kwargs['game_market_id']
+        return f'{super().BASESTEAMURL}id/{steam_alias}/gamecards/{game_market_id}'
 
     def interact(self, cookies: dict, **kwargs) -> requests.Response:
-        steam_id: str = kwargs['steam_id']
-        game_market_id: str = kwargs['game_market_id']
 
-        url = f"{super().BASESTEAMURL}profiles/{steam_id}/gamecards/{game_market_id}"
+        url = self.generate_url(**kwargs)
+
         response = requests.get(url, cookies=cookies)
         return response

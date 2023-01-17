@@ -3,7 +3,6 @@ from etl_pipelines.UpdateFullInventory import UpdateFullInventory
 from etl_pipelines.GetTradingCardsOfNewGames import GetTradingCardsOfNewGames
 from etl_pipelines.OpenGameBoosterPacks import OpenGameBoosterPacks
 from web_crawlers import SteamWebCrawler
-from data_models.SteamGames import SteamGames
 from repositories.SteamUserRepository import SteamUserRepository
 
 
@@ -13,7 +12,11 @@ class SteamUser:
         self.__steam_id: str = user_data['steam_id']
         self.__steam_alias: str = user_data['steam_alias']
         self.__user_id = self.__save_user()
-        self.__crawler = SteamWebCrawler(self.__steam_id, user_data)
+        self.__crawler = SteamWebCrawler(
+            self.__steam_id,
+            self.__steam_alias,
+            user_data,  # user_data should hold user cookies, at least for now
+        )
 
     @property
     def user_id(self) -> int:
@@ -52,16 +55,14 @@ class SteamUser:
         OpenGameBoosterPacks().run(
             self.__crawler,
             user_id=self.__user_id,
-            steam_alias=self.__steam_alias,
             game_name=game_name
         )
 
     def create_sell_listing(self, asset_id: str, price: int) -> None:
         status, result = self.__crawler.interact(
-            'sell_listing',
+            'create_sell_listing',
             asset_id=asset_id,
             price=price,
-            steam_alias=self.__steam_alias,
         )
         if status != 200:
             print(f'\n{status}: {result}\n')

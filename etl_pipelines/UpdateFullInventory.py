@@ -66,7 +66,7 @@ class UpdateFullInventory:
             self, web_crawler: SteamWebCrawler, start_assetid: str = None
     ) -> (int, Union[requests.Response, str]):
         custom_status_code, response = web_crawler.interact(
-            'get_inventory_page',
+            'inventory_page',
             logged_in=True,
             items_per_page=self.__items_per_page,
             start_assetid=start_assetid,

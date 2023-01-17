@@ -43,7 +43,7 @@ class GetTradingCardsOfNewGames:
     @staticmethod
     def __get_page(web_crawler: SteamWebCrawler, game_market_id: str) -> (int, Union[requests.Response, str]):
         custom_status_code, response = web_crawler.interact(
-            'get_trading_cards',
+            'game_cards_page',
             logged_in=True,
             game_market_id=game_market_id
         )
