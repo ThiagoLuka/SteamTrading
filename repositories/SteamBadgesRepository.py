@@ -11,10 +11,10 @@ class SteamBadgesRepository:
         return result
 
     @staticmethod
-    def get_all_by_user_id(user_id: int, columns: list) -> list[tuple]:
+    def get_all_active_by_user_id(user_id: int, columns: list) -> list[tuple]:
         query = f"""
             SELECT {', '.join(columns)} FROM user_badges
-            WHERE user_id = '{user_id}';
+            WHERE user_id = '{user_id}' AND active = True;
         """
         result = DBController.execute(query=query, get_result=True)
         return result
@@ -38,6 +38,15 @@ class SteamBadgesRepository:
         """
         result = DBController.execute(query=query, get_result=True)
         return result
+
+    @staticmethod
+    def get_user_total_experience(user_id: int) -> int:
+        query = f"""
+            SELECT sum(experience) FROM user_badges
+            WHERE user_id = {user_id} AND active = True;
+        """
+        result = DBController.execute(query=query, get_result=True)
+        return result[0][0]
 
     @staticmethod
     def upsert_multiple_game_badges(game_badges: zip, columns: list[str]) -> None:

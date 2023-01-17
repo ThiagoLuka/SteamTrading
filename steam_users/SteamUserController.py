@@ -9,7 +9,11 @@ class SteamUserController(metaclass=Singleton):
     def __init__(self):
         self.__users: dict = {}
         self.__active_user = str
-        self.__load_standard_user()
+        self.__has_user: bool = self.__load_standard_user()
+
+    @property
+    def has_user(self):
+        return self.__has_user
 
     def run_ui(self) -> None:
         while True:
@@ -51,15 +55,21 @@ class SteamUserController(metaclass=Singleton):
         user = self.__users[user_name]
         return user
 
-    def __load_standard_user(self) -> None:
+    def __load_standard_user(self) -> bool:
         user_data: dict = {}
+        try:
+            with open('standard_user.txt', 'r') as file:
+                for line in file.readlines():
+                    line_data = line.strip().split('=', 1)
+                    user_data[line_data[0]] = line_data[1]
+        except FileNotFoundError:
+            SteamUserUI.no_user()
+            SteamUserUI.user_setup_instructions()
+            return False
 
-        with open('standard_user.txt', 'r') as file:
-            for line in file.readlines():
-                line_data = line.strip().split('=', 1)
-                user_data[line_data[0]] = line_data[1]
         standard_user = SteamUser(user_data)
 
         self.__users[standard_user.name] = standard_user
         self.__active_user = standard_user.name
-        SteamUserUI.user_loaded()
+        SteamUserUI.user_loaded(standard_user.name, standard_user.steam_level)
+        return True

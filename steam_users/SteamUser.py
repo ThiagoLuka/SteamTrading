@@ -3,6 +3,7 @@ from etl_pipelines.UpdateFullInventory import UpdateFullInventory
 from etl_pipelines.GetTradingCardsOfNewGames import GetTradingCardsOfNewGames
 from etl_pipelines.OpenGameBoosterPacks import OpenGameBoosterPacks
 from web_crawlers import SteamWebCrawler
+from data_models.SteamBadges import SteamBadges
 from repositories.SteamUserRepository import SteamUserRepository
 
 
@@ -11,12 +12,13 @@ class SteamUser:
     def __init__(self, user_data: dict):
         self.__steam_id: str = user_data['steam_id']
         self.__steam_alias: str = user_data['steam_alias']
-        self.__user_id = self.__save_user()
+        self.__user_id: int = self.__save_user()
         self.__crawler = SteamWebCrawler(
             self.__steam_id,
             self.__steam_alias,
-            user_data,  # user_data should hold user cookies, at least for now
+            user_data,  # user_data should hold user cookies and send them to crawler, at least for now
         )
+        self.__steam_level: int = SteamBadges.get_user_level(self.__user_id)
 
     @property
     def user_id(self) -> int:
@@ -28,11 +30,11 @@ class SteamUser:
 
     @property
     def name(self) -> str:
-        return (
-            self.__steam_alias
-            if self.__steam_alias is not None
-            else self.__steam_id
-        )
+        return self.__steam_alias
+
+    @property
+    def steam_level(self) -> int:
+        return self.__steam_level
 
     def log_in(self, login_data: dict) -> None:
         pass
