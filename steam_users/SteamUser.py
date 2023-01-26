@@ -45,7 +45,7 @@ class SteamUser:
             logged_in=logged_in,
             user_id=self.__user_id,
         )
-        GetTradingCardsOfNewGames().run(self.__crawler)
+        GetTradingCardsOfNewGames(self.__crawler).run()
 
     def update_inventory(self) -> None:
         UpdateFullInventory().run(

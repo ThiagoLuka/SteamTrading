@@ -1,7 +1,5 @@
 from lxml import html
 
-from data_models.SteamTradingCards import SteamTradingCards
-
 
 class GameCardsPageCleaner:
 
@@ -9,21 +7,23 @@ class GameCardsPageCleaner:
         self.__page: html.HtmlElement = html.fromstring(page_bytes)
 
     def page_has_no_cards(self) -> bool:
-        return not self.__page.find_class('badge_card_set_cards')
+        if not self.__page.find_class('badge_card_set_cards'):
+            return True
+        return not self.__page.find_class('badge_card_set_cards')[0].getchildren()[0].getchildren()
 
-    def to_trading_cards(self, game_id: int, game_market_id: str) -> SteamTradingCards:
-
-        trading_cards = SteamTradingCards()
+    def get_cards_info(self, game_market_id: str) -> dict:
 
         names, set_numbers = self.__get_card_name_and_set_number()
 
         url_names = self.__get_url_names(len(names), game_market_id)
 
-        tcg_info = list(zip(set_numbers, names, url_names))
-        for card in tcg_info:
-            trading_cards += SteamTradingCards(game_id=game_id, set_number=card[0], name=card[1], url_name=card[2])
+        page_clean_info: dict = {
+            'names': names,
+            'set_numbers': set_numbers,
+            'url_names': url_names,
+        }
 
-        return trading_cards
+        return page_clean_info
 
     def __get_card_name_and_set_number(self) -> tuple[list, list]:
         div_with_cards_info = self.__page.find_class('badge_card_set_cards')[0]
@@ -56,9 +56,11 @@ class GameCardsPageCleaner:
                 link_with_card_url_names = link
 
         if not link_with_card_url_names:
+            self.__url_names_found = False
             for i in range(set_size):
                 url_names.append('None')
             return url_names
+        self.__url_names_found = True
 
         url_names_on_odd_indexes = link_with_card_url_names.replace('&qty', '').split('[]=')
         url_names_on_odd_indexes.pop()
@@ -67,3 +69,7 @@ class GameCardsPageCleaner:
             url_name = url_name.replace(f'{game_market_id}-', '')
             url_names.append(url_name)
         return url_names
+
+    @property
+    def url_names_found(self):  # should be called only after the cleaning is done
+        return self.__url_names_found

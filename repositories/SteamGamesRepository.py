@@ -11,21 +11,24 @@ class SteamGamesRepository:
         return result
 
     @staticmethod
-    def get_all_without_trading_cards() -> list[tuple]:
+    def get_all_with_trading_cards_not_registered() -> list[tuple]:
         query = """
             SELECT
                 DISTINCT games.id AS id,
                 games.name AS name,
                 market_id
             FROM games
-            FULL OUTER JOIN trading_cards ON trading_cards.game_id = games.id
-            WHERE trading_cards.id IS NULL;
+            FULL OUTER JOIN item_trading_cards ON item_trading_cards.game_id = games.id
+            WHERE
+                has_trading_cards = True
+                AND item_trading_cards.id IS NULL;
         """
         result = DBController.execute(query=query, get_result=True)
         return result
 
     @staticmethod
     def get_by_name(name: str, columns: list) -> list[tuple]:
+        name = QueryBuilderPG.sanitize_string(name)
         query = f"""
             SELECT {', '.join(columns)} FROM games
             WHERE name = '{name}';
@@ -61,5 +64,14 @@ class SteamGamesRepository:
             VALUES {values}
             ON CONFLICT (market_id) DO UPDATE
             SET name = EXCLUDED.name;
+        """
+        DBController.execute(query=query)
+
+    @staticmethod
+    def update_to_has_no_cards(game_id: int) -> None:
+        query = f"""
+            UPDATE games
+            SET has_trading_cards = False
+            WHERE games.id = {game_id}
         """
         DBController.execute(query=query)
