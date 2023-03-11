@@ -24,7 +24,7 @@ class SteamInventory(PandasDataModel):
             '': cls.__columns.copy(),
             'descriptions': cls.__columns_description.copy(),
             'assets': cls.__columns_asset.copy(),
-            'item_types': cls.__columns_item_type.copy(),
+            'types': cls.__columns_item_type.copy(),
         }.get(table, [])
         return cols
 
@@ -41,7 +41,7 @@ class SteamInventory(PandasDataModel):
             self.__save_descriptions()
         if table == 'assets':
             self.__save_assets(user_id)
-        if table == 'item_types':
+        if table == 'types':
             zipped_data = PandasUtils.zip_df_columns(self.df, self.__get_columns(table))
             SteamInventoryRepository.insert_item_types(zipped_data)
 
@@ -117,7 +117,7 @@ class SteamInventory(PandasDataModel):
 
     @staticmethod
     def get_item_types() -> dict:
-        cols = SteamInventory.__get_columns('item_types')
+        cols = SteamInventory.__get_columns('types')
         data = SteamInventoryRepository.get_all('types', cols)
         return dict(data)
 

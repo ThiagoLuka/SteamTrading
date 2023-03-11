@@ -25,8 +25,7 @@ class SteamGames(
         new_and_update = PandasUtils.df_set_difference(self.df, saved.df, 'name')
         if new_and_update.empty:
             return
-        cols_to_insert = self._get_class_columns()
-        cols_to_insert.remove('id')
+        cols_to_insert = ['name', 'market_id']
         zipped_data = PandasUtils.zip_df_columns(new_and_update, cols_to_insert)
         SteamGamesRepository.upsert_multiple_games(zipped_data, cols_to_insert)
 
@@ -54,10 +53,10 @@ class SteamGames(
 
     @staticmethod
     def get_ids_list_by_market_ids_list(market_ids: list) -> list:
-        market_ids_series = SteamGames(market_id=market_ids).df[['market_id']]
+        market_ids: pd.Series = SteamGames(market_id=market_ids).df[['market_id']]
         all_games_df = SteamGames.get_all().df.copy()
         all_games_df['market_id'] = all_games_df['market_id'].astype(int)
-        new_complete_df = pd.merge(market_ids_series, all_games_df, how='left')
+        new_complete_df = pd.merge(market_ids, all_games_df, how='left')
         return list(new_complete_df['id'])
 
     def get_market_ids(self) -> list:
