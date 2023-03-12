@@ -1,38 +1,29 @@
 import pandas as pd
 
 from repositories.SteamBadgesRepository import SteamBadgesRepository
-from data_models.PandasDataModel import PandasDataModel
+from data_models.PandasDataModel import PandasDataModelNew
 from data_models.PandasUtils import PandasUtils
 from data_models.MathUtils import MathUtils
 
 
-class SteamBadges(PandasDataModel):
+class SteamBadges(
+    PandasDataModelNew,
+    tables={
+        'game_badges',
+        'pure_badges',
+        'user_badges',
+    },
+    columns={
+        'default': ('id', 'name', 'level', 'experience', 'foil', 'game_id', 'pure_badge_page_id', 'unlocked_at'),
+        'game_badges': ('id', 'game_id', 'name', 'level', 'foil'),
+        'pure_badges': ('id', 'page_id', 'name'),
+        'user_badges': ('id', 'user_id', 'game_badge_id', 'pure_badge_id', 'experience', 'unlocked_at', 'active'),
+    },
+    repository=SteamBadgesRepository
+):
 
-    __columns = ['id', 'name', 'level', 'experience', 'foil', 'game_id', 'pure_badge_page_id', 'unlocked_at']
-    __columns_game = ['id', 'game_id', 'name', 'level', 'foil']
-    __columns_pure = ['id', 'page_id', 'name']
-    __columns_user = ['id', 'user_id', 'game_badge_id', 'pure_badge_id', 'experience', 'unlocked_at', 'active']
-
-    def __init__(self, badge_type: str = '', **data):
-        cols = self.__get_columns(badge_type)
-        class_name = self.__class__.__name__
-        super().__init__(class_name, cols, **data)
-
-    @classmethod
-    def __get_columns(cls, badge_type: str = ''):
-        cols = {
-            '': cls.__columns.copy(),
-            'game': cls.__columns_game.copy(),
-            'pure': cls.__columns_pure.copy(),
-            'user': cls.__columns_user.copy(),
-        }.get(badge_type, [])
-        return cols
-
-    @classmethod
-    def __from_db(cls, badge_type: str, db_data: list[tuple]):
-        zipped_data = zip(*db_data)
-        dict_data = dict(zip(cls.__get_columns(badge_type), zipped_data))
-        return cls(badge_type, **dict_data)
+    def __init__(self, table: str = 'default', **data):
+        super().__init__(table, **data)
 
     def save(self, user_id: int) -> None:
         game_badges = self.df[self.df['pure_badge_page_id'].isna()]
@@ -53,20 +44,21 @@ class SteamBadges(PandasDataModel):
 
         self.__update_inactive_badges(user_id)
 
-    @classmethod
-    def __save_by_type(cls, badge_type: str, new: pd.DataFrame, check_diff_on_columns: list[str]) -> None:
-        saved = cls.get_all(badge_type).df
+    @staticmethod
+    def __save_by_type(badge_type: str, new: pd.DataFrame, check_diff_on_columns: list[str]) -> None:
+        saved = SteamBadges.get_all(badge_type).df
         if badge_type == 'user':
             saved = PandasUtils.format_only_positive_int_with_nulls(saved, ['game_badge_id', 'pure_badge_id'])
         to_save = PandasUtils.df_set_difference(new, saved, check_diff_on_columns)
-        if not to_save.empty:
-            cols_to_insert = cls.__get_columns(badge_type)
-            cols_to_insert.remove('id')
-            zipped_data = PandasUtils.zip_df_columns(to_save, cols_to_insert)
-            if badge_type == 'game':
-                SteamBadgesRepository.upsert_multiple_game_badges(zipped_data, cols_to_insert)
-            if badge_type == 'pure' or badge_type == 'user':
-                SteamBadgesRepository.insert_multiple_badges(badge_type, zipped_data, cols_to_insert)
+        if to_save.empty:
+            return
+        cols_to_insert = SteamBadges._get_class_columns(f'{badge_type}_badges')
+        cols_to_insert.remove('id')
+        zipped_data = PandasUtils.zip_df_columns(to_save, cols_to_insert)
+        if badge_type == 'game':
+            SteamBadgesRepository.upsert_multiple_game_badges(zipped_data, cols_to_insert)
+        if badge_type == 'pure' or badge_type == 'user':
+            SteamBadgesRepository.insert_multiple_badges(badge_type, zipped_data, cols_to_insert)
 
     def __user_badges_with_other_tables_references(self, user_id: int) -> pd.DataFrame:
         saved_game_badges = self.get_all('game').df
@@ -80,7 +72,7 @@ class SteamBadges(PandasDataModel):
         user_badges = pd.concat([user_game_badges, user_pure_badges], ignore_index=True)
         user_badges['user_id'] = user_id
         user_badges['active'] = 1
-        user_badges = user_badges[self.__get_columns('user')]
+        user_badges = user_badges[SteamBadges._get_class_columns('user_badges')]
         user_badges = PandasUtils.format_only_positive_int_with_nulls(user_badges, ['game_badge_id', 'pure_badge_id'])
         return user_badges
 
@@ -116,15 +108,15 @@ class SteamBadges(PandasDataModel):
 
     @staticmethod
     def get_all(badge_type: str = 'user') -> 'SteamBadges':
-        cols = SteamBadges.__get_columns(badge_type)
+        cols = SteamBadges._get_class_columns(f'{badge_type}_badges')
         data = SteamBadgesRepository.get_all(badge_type, cols)
-        return SteamBadges.__from_db(badge_type, data)
+        return SteamBadges._from_db(f'{badge_type}_badges', data)
 
     @staticmethod
     def get_current_by_user(user_id: int) -> 'SteamBadges':
-        cols = SteamBadges.__get_columns('user')
+        cols = SteamBadges._get_class_columns('user_badges')
         data = SteamBadgesRepository.get_all_active_by_user_id(user_id, cols)
-        return SteamBadges.__from_db('user', data)
+        return SteamBadges._from_db('user_badges', data)
 
     @staticmethod
     def get_user_level(user_id: int) -> int:
