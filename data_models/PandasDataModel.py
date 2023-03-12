@@ -24,6 +24,9 @@ class PandasDataModel:
             return self
         raise TypeError(f'Trying to sum data model with unknown type')
 
+    def __radd__(self, other):
+        return self if other == 0 else self.__add__(other)
+
     def __iter__(self):
         for index, row in self.__df.iterrows():
             yield dict(row)
@@ -73,6 +76,9 @@ class PandasDataModelNew:
         self.__df = pd.concat([self.df, other.df], ignore_index=True)
         self.__df.drop_duplicates(inplace=True)
         return self
+
+    def __radd__(self, other):
+        return self if other == 0 else self.__add__(other)
 
     def __iter__(self):
         for index, row in self.__df.iterrows():

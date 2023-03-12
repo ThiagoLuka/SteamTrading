@@ -1,17 +1,18 @@
 from datetime import date
-from typing import Optional
+from typing import Union
 
 from lxml import html
-
-from data_models.SteamGames import SteamGames
-from data_models.SteamBadges import SteamBadges
 
 
 class ProfileBadgesPageCleaner:
 
     def __init__(self, page_string: bytes):
         self.__page: html.HtmlElement = html.fromstring(page_string)
-        self.__badges_raw: html.HtmlElement = self.__page.find_class('badge_row')
+        self.__raw_badges: html.HtmlElement = self.__page.find_class('badge_row')
+
+    @property
+    def raw_badges(self):
+        return self.__raw_badges
 
     def get_number_of_pages(self) -> int:
         if not self.__page.find_class('profile_paging'):
@@ -22,105 +23,74 @@ class ProfileBadgesPageCleaner:
         number_of_pages: int = 1 + int(len(divs_with_link_to_next_page)/2)
         return number_of_pages
 
-    def to_games(self):
-        market_ids = []
-        game_names = []
+    class BadgeCleaner:
 
-        for badge_raw in self.__badges_raw:
-            # badges not related to games (pure_badges) have '/badges/' in their url and should be ignored
-            badge_details_link = badge_raw.find_class('badge_row_overlay')[0].get('href')
-            if '/badges/' in badge_details_link:
-                continue
+        def __init__(self, badge_raw: html.HtmlElement):
+            self.badge_raw = badge_raw
+            self.badge_details_url = badge_raw.find_class('badge_row_overlay')[0].get('href')
 
-            market_ids.append(badge_details_link.split('/')[-2])
-            game_names.append(self.__get_game_name(badge_raw))
+        def is_game_badge(self) -> bool:
+            # badges not related to games (pure_badges) have '/badges/' in their url
+            return '/badges/' not in self.badge_details_url
 
-        games = SteamGames(name=game_names, market_id=market_ids)
-        return games
+        def is_completed(self) -> bool:
+            # incomplete badges have a 'badge_emtpy' div
+            return not bool(self.badge_raw.find_class('badge_empty'))
 
-    def to_badges(self):
-        badge_names = []
-        levels = []
-        xps = []
-        foils = []
-        game_ids = []
-        pure_badge_page_ids = []
-        unlocked_datetimes = []
-
-        for badge_raw in self.__badges_raw:
-
-            # not completed badges are ignored
-            if badge_raw.find_class('badge_empty'):
-                continue
-
+        def have_info(self) -> bool:
             # some badges have no info whatsoever. It's a bit weird, and they should be ignored as well
-            if not badge_raw.find_class('badge_current')[0].getchildren():
-                continue
+            # those badges have no children under the 'badge_current' div
+            return bool(self.badge_raw.find_class('badge_current')[0].getchildren())
 
-            badge_names.append(badge_raw.find_class('badge_info_title')[0].text)
-            level, xp = self.__get_level_and_xp(badge_raw)
-            levels.append(level)
-            xps.append(xp)
-            foils.append(int('Foil Badge' in badge_raw.find_class('badge_title')[0].text))
-            game_id, pure_badge_page_id = self.__get_game_id_and_pure_badge_page_id(badge_raw)
-            game_ids.append(game_id)
-            pure_badge_page_ids.append(pure_badge_page_id)
-            unlocked_datetimes.append(self.__get_unlocked_datetime(badge_raw))
+        def get_market_id(self) -> Union[str, None]:
+            if not self.is_game_badge():
+                return None
+            return self.badge_details_url.split('/')[-2]
 
-        badges = SteamBadges(
-            name=badge_names, level=levels, experience=xps, foil=foils, game_id=game_ids,
-            pure_badge_page_id=pure_badge_page_ids, unlocked_at=unlocked_datetimes
-        )
-        return badges
+        def get_game_name(self) -> str:
+            game_name_raw = self.badge_raw.find_class('badge_title')[0].text
+            if 'Foil Badge' in game_name_raw:
+                game_name_raw = game_name_raw.replace('- Foil Badge', '')
+            game_name = game_name_raw.replace('\r', '').replace('\n', '').replace('\t', '').replace('\xa0', '')
+            return game_name
 
-    @staticmethod
-    def __get_game_name(badge_raw: html.HtmlElement) -> str:
-        game_name_raw = badge_raw.find_class('badge_title')[0].text
-        if 'Foil Badge' in game_name_raw:
-            game_name_raw = game_name_raw.replace('- Foil Badge', '')
-        game_name = game_name_raw.replace('\r', '').replace('\n', '').replace('\t', '').replace('\xa0', '')
-        return game_name
+        def get_badge_name(self) -> str:
+            return self.badge_raw.find_class('badge_info_title')[0].text
 
-    @staticmethod
-    def __get_level_and_xp(badge_raw: html.HtmlElement) -> tuple[int, int]:
-        level_and_xp_raw = badge_raw.find_class('badge_info_description')[0].getchildren()[1].text
-        level_and_xp_raw_list = level_and_xp_raw.split()
-        if 'Level' in level_and_xp_raw_list:
-            level_index = level_and_xp_raw_list.index('Level')
-            level_raw = level_and_xp_raw_list[level_index + 1]
-            level = int(level_raw.replace(',', ''))
-        else:
-            level = None
-        xp_index = level_and_xp_raw_list.index('XP')
-        xp_raw = level_and_xp_raw_list[xp_index - 1]
-        xp = int(xp_raw.replace(',', ''))
-        return level, xp
+        def get_level_and_xp(self) -> tuple[int, int]:
+            level_and_xp_raw = self.badge_raw.find_class('badge_info_description')[0].getchildren()[1].text
+            level_and_xp_raw_list = level_and_xp_raw.split()
+            if 'Level' in level_and_xp_raw_list:
+                level_index = level_and_xp_raw_list.index('Level')
+                level_raw = level_and_xp_raw_list[level_index + 1]
+                level = int(level_raw.replace(',', ''))
+            else:
+                level = None
+            xp_index = level_and_xp_raw_list.index('XP')
+            xp_raw = level_and_xp_raw_list[xp_index - 1]
+            xp = int(xp_raw.replace(',', ''))
+            return level, xp
 
-    @staticmethod
-    def __get_game_id_and_pure_badge_page_id(badge_raw: html.HtmlElement) -> tuple[Optional[int], Optional[int]]:
-        badge_details_link = badge_raw.find_class('badge_row_overlay')[0].get('href')
-        # badges not related to games (pure_badges) have '/badges/' in their url
-        if '/badges/' in badge_details_link:
-            game_id = None
-            pure_badge_page_id = int(badge_details_link.split('/')[-1])
-        else:
-            game_market_id = badge_details_link.split('/')[-2]
-            game_id = SteamGames.get_id_by_market_id(game_market_id)
-            pure_badge_page_id = None
-        return game_id, pure_badge_page_id
+        def get_foil(self) -> int:
+            return int('Foil Badge' in self.badge_raw.find_class('badge_title')[0].text)
 
-    @staticmethod
-    def __get_unlocked_datetime(badge_raw: html.HtmlElement) -> str:
-        unlckd_datetime_raw = badge_raw.find_class('badge_info_unlocked')[0].text
-        unlckd_datetime_raw_list = unlckd_datetime_raw.replace('Unlocked', '').replace('@', '').replace(',', '').split()
+        def get_pure_badge_page_id(self) -> Union[int, None]:
+            if self.is_game_badge():
+                return None
+            return int(self.badge_details_url.split('/')[-1])
 
-        unlckd_time_raw = unlckd_datetime_raw_list.pop(-1)
-        unlckd_time = unlckd_time_raw.replace('am', ' AM').replace('pm', ' PM')
+        def get_unlocked_datetime(self) -> str:
+            unlckd_datetime_raw = self.badge_raw.find_class('badge_info_unlocked')[0].text
+            unlckd_datetime_raw_list = unlckd_datetime_raw.replace('Unlocked', '').replace('@', '').replace(',',
+                                                                                                            '').split()
 
-        unlckd_date_raw_list = unlckd_datetime_raw_list
-        if len(unlckd_date_raw_list) == 2:
-            unlckd_date_raw_list.append(str(date.today().year))
-        unlckd_date_raw = '-'.join(unlckd_date_raw_list)
-        unlckd_date = unlckd_date_raw.replace(',', '')
+            unlckd_time_raw = unlckd_datetime_raw_list.pop(-1)
+            unlckd_time = unlckd_time_raw.replace('am', ' AM').replace('pm', ' PM')
 
-        return f'{unlckd_date} {unlckd_time}'
+            unlckd_date_raw_list = unlckd_datetime_raw_list
+            if len(unlckd_date_raw_list) == 2:
+                unlckd_date_raw_list.append(str(date.today().year))
+            unlckd_date_raw = '-'.join(unlckd_date_raw_list)
+            unlckd_date = unlckd_date_raw.replace(',', '')
+
+            return f'{unlckd_date} {unlckd_time}'
