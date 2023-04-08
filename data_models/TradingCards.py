@@ -1,10 +1,10 @@
-from data_models.PandasDataModel import PandasDataModelNew
+from data_models.PandasDataModel import PandasDataModel
 from data_models.PandasUtils import PandasUtils
 from repositories.TradingCardsRepository import TradingCardsRepository
 
 
 class TradingCards(
-    PandasDataModelNew,
+    PandasDataModel,
     tables={
         'item_booster_packs',
         'item_trading_cards'

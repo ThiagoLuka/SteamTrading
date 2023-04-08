@@ -5,8 +5,8 @@ from user_interfaces.GenericUI import GenericUI
 from web_crawlers import SteamWebCrawler
 from web_page_cleaning.InventoryPageCleaner import InventoryPageCleaner
 from data_models.SteamInventory import SteamInventory
-from data_models.SteamTradingCards import SteamTradingCards
 from data_models.SteamGames import SteamGames
+from data_models.ItemsSteam import ItemsSteam
 
 
 class UpdateInventory:
@@ -26,14 +26,44 @@ class UpdateInventory:
         progress_text = 'Cleaning and saving data'
         GenericUI.progress_completed(progress=0, total=1, text=progress_text)
 
-        self.__save_new_games(inventory_cleaner)
+        # there's still a mixed level of abstraction here. This part shouldn't be that aware of details of the data
+        # that flows from the cleaner to the data_models
 
-        descripts: SteamInventory = self.__to_descriptions(inventory_cleaner)
-        assets: SteamInventory = self.__to_assets(inventory_cleaner, self.__user_id)
+        inventory_games_raw = inventory_cleaner.get_games_with_market_id()
+        inventory_games = SteamGames()
+        saved_game_market_ids = SteamGames().get_market_ids()
+        for game_name, game_market_id in inventory_games_raw:
+            if str(game_market_id) not in saved_game_market_ids:
+                inventory_games += SteamGames(name=game_name, market_id=game_market_id)
+        inventory_games.save()
 
-        descripts.save('descriptions')
-        SteamTradingCards.set_relationship_with_item_descripts(SteamInventory.get_all('descriptions').df)
-        assets.save('assets', self.__user_id)
+        type_id_and_names = inventory_cleaner.get_item_types_with_item_names()
+        type_ids, type_names = zip(*set(type_id_and_names))
+        ItemsSteam(
+            'item_steam_types', id=type_ids, name=type_names
+        ).save()
+
+        game_market_ids = inventory_cleaner.get_game_market_ids_for_descripts()
+        game_ids = SteamGames.get_ids_list_by_market_ids_list(game_market_ids)
+        type_ids, type_names = zip(*type_id_and_names)
+        names = inventory_cleaner.get_descript_names()
+        url_names = inventory_cleaner.get_item_url_names()
+        ItemsSteam(
+            'items_steam', game_id=game_ids, item_steam_type_id=type_ids, name=names, market_url_name=url_names
+        ).save()
+
+        items_steam_ids = ItemsSteam.get_ids_by_game_id_and_market_url_name(game_ids, url_names)
+        class_ids = inventory_cleaner.get_class_ids('descriptions')
+        ItemsSteam(
+            'item_steam_descriptions', item_steam_id=items_steam_ids, class_id=class_ids
+        ).save()
+
+        class_ids = inventory_cleaner.get_class_ids('assets')
+        asset_ids = inventory_cleaner.get_asset_ids()
+        marketables = inventory_cleaner.get_asset_marketable_info()
+        SteamInventory(
+            'cleaning', class_id=class_ids, asset_id=asset_ids, marketable=marketables,
+        ).save(self.__user_id)
 
         GenericUI.progress_completed(progress=1, total=1, text=progress_text)
 
@@ -56,6 +86,9 @@ class UpdateInventory:
 
         while inventory_cleaner.more_items:
             custom_status_code, page_response = self.__get_page(start_assetid=inventory_cleaner.last_assetid)
+            # used to fix instability on steam servers, but it's a bad way to do it
+            # while custom_status_code == 502:
+            #     custom_status_code, page_response = self.__get_page(start_assetid=inventory_cleaner.last_assetid)
             inventory_raw = page_response.json()
             inventory_cleaner += inventory_raw
             GenericUI.progress_completed(progress=self.__add_extraction_page_progress(), total=inventory_size, text=progress_text)
@@ -76,45 +109,3 @@ class UpdateInventory:
         self.__extraction_progress_counter += 1
         progress = self.__extraction_progress_counter * self.__items_per_page
         return progress
-
-    def __to_descriptions(self, inventory_cleaner: InventoryPageCleaner) -> SteamInventory:
-        game_market_ids = inventory_cleaner.get_game_market_ids_for_descripts()
-        game_ids = SteamGames.get_ids_list_by_market_ids_list(game_market_ids)
-        class_ids = inventory_cleaner.get_class_ids('descriptions')
-        type_id_and_names = inventory_cleaner.get_item_types_with_item_names()
-        self.__save_new_item_types(type_id_and_names)
-        type_ids = [type_id[0] for type_id in type_id_and_names]
-        names = inventory_cleaner.get_descript_names()
-        url_names = inventory_cleaner.get_item_url_names()
-        descripts = SteamInventory(game_id=game_ids, name=names, type_id=type_ids, class_id=class_ids, url_name=url_names)
-        return descripts
-
-    @staticmethod
-    def __to_assets(inventory_cleaner: InventoryPageCleaner, user_id: int) -> SteamInventory:
-        user_ids = [user_id] * len(inventory_cleaner)
-        class_ids = inventory_cleaner.get_class_ids('assets')
-        asset_ids = inventory_cleaner.get_asset_ids()
-        marketables = inventory_cleaner.get_asset_marketable_info()
-        assets = SteamInventory(user_id=user_ids, class_id=class_ids, asset_id=asset_ids, marketable=marketables)
-        return assets
-
-    @staticmethod
-    def __save_new_games(inventory_cleaner: InventoryPageCleaner) -> None:
-        inventory_games_raw = inventory_cleaner.get_games_with_market_id()
-        inventory_games = SteamGames()
-        saved_game_market_ids = SteamGames().get_market_ids()
-        for game_name, game_market_id in inventory_games_raw:
-            if str(game_market_id) not in saved_game_market_ids:
-                inventory_games += SteamGames(name=game_name, market_id=game_market_id)
-        inventory_games.save()
-
-    @staticmethod
-    def __save_new_item_types(type_id_and_names: list) -> None:
-        new_id_and_name = {elem[0]: elem[1] for elem in type_id_and_names}
-        saved_type_ids = SteamInventory.get_item_types()
-        to_save = SteamInventory()
-        for type_id, type_name in new_id_and_name.items():
-            if int(type_id) not in saved_type_ids.keys():
-                to_save += SteamInventory(id=type_id, name=type_name)
-        if not to_save.empty:
-            to_save.save('types')

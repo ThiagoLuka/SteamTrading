@@ -1,12 +1,12 @@
 import pandas as pd
 
-from data_models.PandasDataModel import PandasDataModelNew
+from data_models.PandasDataModel import PandasDataModel
 from data_models.PandasUtils import PandasUtils
 from repositories.SteamGamesRepository import SteamGamesRepository
 
 
 class SteamGames(
-    PandasDataModelNew,
+    PandasDataModel,
     tables={
         'games',
     },

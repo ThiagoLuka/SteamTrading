@@ -26,6 +26,24 @@ class ItemsSteamRepository:
         return result
 
     @staticmethod
+    def get_all_descriptions() -> list[tuple]:
+        query = f"""
+            SELECT item_steam_id, class_id
+            FROM item_steam_descriptions;
+        """
+        result = DBController.execute(query=query, get_result=True)
+        return result
+
+    @staticmethod
+    def get_all_class_ids() -> list[tuple[str]]:
+        query = f"""
+            SELECT class_id
+            FROM item_steam_descriptions;
+        """
+        result = DBController.execute(query=query, get_result=True)
+        return result
+
+    @staticmethod
     def get_item_type_id(type_name: str) -> list[tuple]:
         type_name = QueryBuilderPG.sanitize_string(type_name)
         query = f"""
@@ -47,6 +65,17 @@ class ItemsSteamRepository:
         return result
 
     @staticmethod
+    def get_by_game_id_and_market_url_names(columns: list, game_ids_and_market_url_names: zip) -> list[tuple]:
+        target_tuples = QueryBuilderPG.unzip_to_query_values_str(game_ids_and_market_url_names)
+        query = f"""
+            SELECT {', '.join(columns)}
+            FROM items_steam
+            WHERE (game_id, market_url_name) IN ({target_tuples})
+        """
+        result = DBController.execute(query=query, get_result=True)
+        return result
+
+    @staticmethod
     def upsert_multiple_items(items: zip, columns: list) -> None:
         values = QueryBuilderPG.unzip_to_query_values_str(items)
         query = f"""
@@ -63,5 +92,14 @@ class ItemsSteamRepository:
             VALUES ({type_id}, '{type_name}')
             ON CONFLICT (name) DO UPDATE
             SET id = EXCLUDED.id;
+        """
+        DBController.execute(query=query)
+
+    @staticmethod
+    def insert_item_description(descripts: zip, columns: list) -> None:
+        values = QueryBuilderPG.unzip_to_query_values_str(descripts)
+        query = f"""
+            INSERT INTO item_steam_descriptions ({', '.join(columns)})
+            VALUES {values};
         """
         DBController.execute(query=query)

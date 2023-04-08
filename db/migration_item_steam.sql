@@ -22,7 +22,6 @@
  	,item_steam_type_id INT NOT NULL REFERENCES item_steam_types(id) ON UPDATE CASCADE
  	,name TEXT NOT NULL
  	,market_url_name TEXT NOT NULL
- 	,market_item_name_id TEXT UNIQUE
  	,CONSTRAINT unique_item UNIQUE(game_id, market_url_name)
  );
 
@@ -48,8 +47,7 @@ CREATE TABLE IF NOT EXISTS item_booster_packs
 
 CREATE TABLE IF NOT EXISTS item_steam_descriptions
 (
-	id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY
-	,item_steam_id INT NOT NULL REFERENCES items_steam(id)
+	item_steam_id INT NOT NULL REFERENCES items_steam(id) PRIMARY KEY
 	,class_id TEXT NOT NULL
 	,CONSTRAINT unique_descript UNIQUE(class_id)
 );
@@ -62,6 +60,6 @@ CREATE TABLE IF NOT EXISTS item_steam_assets
 	,asset_id TEXT NOT NULL
 	,marketable BOOL NOT NULL
 	,created_at TIMESTAMP NOT NULL
-	,removed_at TIMESTAMP NOT NULL
-	,CONSTRAINT unique_asset UNIQUE(asset_id)
+	,removed_at TIMESTAMP
+	,CONSTRAINT unique_asset UNIQUE(user_id, asset_id)
 );

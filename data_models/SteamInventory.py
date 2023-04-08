@@ -4,66 +4,35 @@ from datetime import datetime
 from repositories.SteamInventoryRepository import SteamInventoryRepository
 from data_models.PandasDataModel import PandasDataModel
 from data_models.PandasUtils import PandasUtils
+from data_models.ItemsSteam import ItemsSteam
 
 
-class SteamInventory(PandasDataModel):
+class SteamInventory(
+    PandasDataModel,
+    tables={
+        'item_steam_assets'
+    },
+    columns={
+        'default': ('id', 'item_steam_id', 'user_id', 'asset_id', 'marketable', 'created_at', 'removed_at'),
+        'cleaning': ('class_id', 'asset_id', 'marketable')
+    },
+    repository=SteamInventoryRepository
+):
 
-    __columns = ['id', 'user_id', 'game_id', 'name', 'type_id', 'class_id', 'asset_id', 'marketable', 'url_name']
-    __columns_description = ['id', 'game_id', 'class_id', 'type_id', 'name', 'url_name']
-    __columns_asset = ['id', 'user_id', 'description_id', 'asset_id', 'created_at', 'removed_at', 'marketable']
-    __columns_item_type = ['id', 'name']
+    def __init__(self, table: str = 'default', **data):
+        super().__init__(table, **data)
 
-    def __init__(self, table: str = '', **data):
-        cols = self.__get_columns(table)
-        class_name = self.__class__.__name__
-        super().__init__(class_name, cols, **data)
-
-    @classmethod
-    def __get_columns(cls, table: str = '') -> list:
-        cols = {
-            '': cls.__columns.copy(),
-            'descriptions': cls.__columns_description.copy(),
-            'assets': cls.__columns_asset.copy(),
-            'types': cls.__columns_item_type.copy(),
-        }.get(table, [])
-        return cols
-
-    @classmethod
-    def __from_db(cls, table: str, db_data: list[tuple]):
-        zipped_data = zip(*db_data)
-        dict_data = dict(zip(cls.__get_columns(table), zipped_data))
-        return cls(table, **dict_data)
-
-    def save(self, table: str = '', user_id: int = 0) -> None:
-        if table == '':
-            raise TypeError('Saving inventory requires table name')
-        if table == 'descriptions':
-            self.__save_descriptions()
-        if table == 'assets':
-            self.__save_assets(user_id)
-        if table == 'types':
-            zipped_data = PandasUtils.zip_df_columns(self.df, self.__get_columns(table))
-            SteamInventoryRepository.insert_item_types(zipped_data)
-
-    def __save_descriptions(self, table: str = 'descriptions') -> None:
-        new = self.df.drop_duplicates()
-        saved = self.get_all(table).df
-        to_save = PandasUtils.df_set_difference(new, saved, ['class_id', 'url_name'])
-        if not to_save.empty:
-            cols_to_insert = self.__get_columns(table)
-            cols_to_insert.remove('id')
-            zipped_data = PandasUtils.zip_df_columns(to_save, cols_to_insert)
-            SteamInventoryRepository.upsert_descriptions(zipped_data, cols_to_insert)
-
-    def __save_assets(self, user_id: int = 0, table: str = 'assets') -> None:
+    def save(self, user_id: int = 0):
         if user_id == 0:
             return
 
         new_inv = self.df
-        last_inv = SteamInventory.get_current_inventory_from_db(user_id)
-        to_remove = PandasUtils.df_set_difference(last_inv.df, new_inv, 'asset_id')
-        to_upsert_without_id = PandasUtils.df_set_difference(new_inv, last_inv.df, ['asset_id', 'marketable'])
-        to_upsert = pd.merge(to_upsert_without_id.drop(columns='id'), last_inv.df[['id', 'asset_id']], how='left')
+        new_inv = self.__add_item_steam_id(new_inv)
+
+        last_inv = SteamInventory.get_current_inventory_from_db(user_id).df
+        to_remove = PandasUtils.df_set_difference(last_inv, new_inv, 'asset_id').copy()
+        to_upsert_without_id = PandasUtils.df_set_difference(new_inv, last_inv, ['asset_id', 'marketable'])
+        to_upsert = pd.merge(to_upsert_without_id, last_inv[['id', 'asset_id']], how='left')
 
         if not to_remove.empty:
             to_remove['removed_at'] = str(datetime.now())
@@ -71,55 +40,30 @@ class SteamInventory(PandasDataModel):
             SteamInventoryRepository.update_removed_assets(zipped_data)
 
         if not to_upsert.empty:
-            class_id_to_descript_id = SteamInventory.__class_id_to_description_id_relationship()
-            to_upsert = pd.merge(to_upsert, class_id_to_descript_id, how='left')
+            to_upsert['user_id'] = user_id
             to_upsert['created_at'] = str(datetime.now())
             to_upsert['removed_at'] = 'None'
 
-            cols_to_insert = self.__get_columns(table)
+            cols_to_insert = self._get_class_columns('default')
             cols_to_insert.remove('id')
             zipped_data = PandasUtils.zip_df_columns(to_upsert, cols_to_insert)
             SteamInventoryRepository.upsert_new_assets(zipped_data, cols_to_insert)
 
     @staticmethod
-    def __last_saved_date(user_id: int) -> str:
-        last_saved_date = SteamInventoryRepository.last_inventory_saved_date(user_id)
-        if not last_saved_date:
-            last_saved_date = '1970-01-01'
-        else:
-            last_saved_date = str(last_saved_date[0][0])
-        return last_saved_date
+    def __add_item_steam_id(new_inv: pd.DataFrame) -> pd.DataFrame:
+        descriptions = ItemsSteam.get_all_descriptions().df
+        new_inv = pd.merge(new_inv, descriptions)
+        return new_inv
 
     @staticmethod
-    def __class_id_to_description_id_relationship() -> pd.DataFrame:
-        cols = SteamInventory.__get_columns('descriptions')
-        data = SteamInventoryRepository.get_all('descriptions', cols)
-        df_relationship = SteamInventory.__from_db('descriptions', data).df
-        df_relationship = df_relationship[['id', 'class_id']].copy()
-        df_relationship.rename(columns={'id': 'description_id'}, inplace=True)
-        return df_relationship
-
-    @staticmethod
-    def get_all(table: str = 'assets') -> 'SteamInventory':
-        cols = SteamInventory.__get_columns(table)
-        data = SteamInventoryRepository.get_all(table, cols)
-        return SteamInventory.__from_db(table, data)
-
-    @staticmethod
-    def get_current_inventory_from_db(user_id: int) -> 'SteamInventory':
-        cols = SteamInventory.__get_columns('assets')
+    def get_current_inventory_from_db(user_id: int):
+        cols = SteamInventory._get_class_columns('default')
         data = SteamInventoryRepository.get_current_by_user_id(user_id, cols)
-        return SteamInventory.__from_db('assets', data)
+        return SteamInventory._from_db('default', data)
 
     @staticmethod
     def get_current_inventory_size(user_id: int) -> int:
         return SteamInventoryRepository.get_current_size_by_user_id(user_id)
-
-    @staticmethod
-    def get_item_types() -> dict:
-        cols = SteamInventory.__get_columns('types')
-        data = SteamInventoryRepository.get_all('types', cols)
-        return dict(data)
 
     @staticmethod
     def get_overview_marketable_cards(user_id: int) -> dict:

@@ -1,13 +1,13 @@
 import pandas as pd
 
 from repositories.SteamBadgesRepository import SteamBadgesRepository
-from data_models.PandasDataModel import PandasDataModelNew
+from data_models.PandasDataModel import PandasDataModel
 from data_models.PandasUtils import PandasUtils
 from data_models.MathUtils import MathUtils
 
 
 class SteamBadges(
-    PandasDataModelNew,
+    PandasDataModel,
     tables={
         'game_badges',
         'pure_badges',
