@@ -1,3 +1,4 @@
+import time
 from threading import Thread
 from queue import Queue, Empty
 
@@ -18,6 +19,7 @@ class SteamTraderController:
             daemon=True,
         )
         sell_items_thread.start()
+        self.__cards_sold_count = 0
 
     def run_ui(self) -> None:
         while True:
@@ -56,5 +58,8 @@ class SteamTraderController:
             except Empty:
                 continue
             else:
+                if self.__cards_sold_count % 100 == 0:
+                    time.sleep(25)
                 self.__user.create_sell_listing(asset_id=asset_id, price=price)
                 self.__sell_items_queue.task_done()
+                self.__cards_sold_count += 1
