@@ -2,7 +2,9 @@ from etl_pipelines.ScrapProfileBadgesPage import ScrapProfileBadgesPage
 from etl_pipelines.UpdateFullInventory import UpdateInventory
 from etl_pipelines.GetTradingCardsOfNewGames import GetTradingCardsOfNewGames
 from etl_pipelines.OpenGameBoosterPacks import OpenGameBoosterPacks
+from etl_pipelines.ScrapItemMarketPage import ScrapItemMarketPage
 from web_crawlers import SteamWebCrawler
+from data_models.ItemsSteam import ItemsSteam
 from data_models.SteamBadges import SteamBadges
 from repositories.SteamUserRepository import SteamUserRepository
 
@@ -66,6 +68,15 @@ class SteamUser:
         if status != 200:
             print(f'\n{status}: {result}\n')
             return
+
+    def update_buy_order(self, game_market_id: str, steam_item: ItemsSteam, open_web_browser: bool):
+        ScrapItemMarketPage().run(
+            self.__crawler,
+            user_id=self.__user_id,
+            game_market_id=game_market_id,
+            steam_item=steam_item,
+            open_web_browser=open_web_browser,
+        )
 
     def __save_user(self) -> int:
         saved = SteamUserRepository.get_by_steam_id(self.__steam_id)

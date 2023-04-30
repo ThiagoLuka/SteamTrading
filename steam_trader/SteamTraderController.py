@@ -5,6 +5,9 @@ from queue import Queue, Empty
 from user_interfaces.GenericUI import GenericUI
 from user_interfaces.SteamTraderUI import SteamTraderUI
 from steam_users.SteamUser import SteamUser
+from data_models.SteamGames import SteamGames
+from data_models.ItemsSteam import ItemsSteam
+from data_models.BuyOrders import BuyOrders
 from data_models.SteamInventory import SteamInventory
 
 
@@ -13,13 +16,14 @@ class SteamTraderController:
     def __init__(self, steam_user: SteamUser):
         self.__user = steam_user
         self.__user_id = steam_user.user_id
+        self.__cards_sold_count = 0
+
         self.__sell_items_queue = Queue()
         sell_items_thread = Thread(
             target=self.__sell_item_task,
             daemon=True,
         )
         sell_items_thread.start()
-        self.__cards_sold_count = 0
 
     def run_ui(self) -> None:
         while True:
@@ -46,7 +50,33 @@ class SteamTraderController:
 
     def sell_multiple_cards(self):
         game_name = GenericUI.get_game_name()
-        cards_to_sell = SteamInventory.get_marketable_cards_asset_ids(self.__user_id, game_name)
+        game = SteamGames.get_all_by_name(game_name)
+        if game.empty:
+            return
+        game_items = ItemsSteam.get_booster_pack_and_cards_market_url(game.id)
+
+        cards_to_sell_names, cards_to_sell = SteamInventory.get_marketable_cards_asset_ids(self.__user_id, game.name)
+
+        for steam_item_data in game_items:
+            steam_item = ItemsSteam('items_steam', **steam_item_data)
+            open_web_browser = False
+            if steam_item.df.loc[0, 'name'] in cards_to_sell_names:
+                open_web_browser = True
+            self.__user.update_buy_order(
+                game_market_id=game.market_id,
+                steam_item=steam_item,
+                open_web_browser=open_web_browser
+            )
+
+        buy_orders = BuyOrders.get_last_buy_order(list(game_items.df.id), self.__user_id)
+        SteamTraderUI.buy_orders_header(game.name)
+        for steam_item_data in game_items:
+            buy_order_filter = buy_orders.df['item_steam_id'] == steam_item_data['id']
+            buy_order_qtd = list(buy_orders.df.loc[buy_order_filter, 'qtd_current'].values)[0]
+            buy_order_price = list(buy_orders.df.loc[buy_order_filter, 'price'].values)[0]
+            item_name = steam_item_data['name']
+            SteamTraderUI.show_buy_order(qtd=buy_order_qtd, price=buy_order_price, item_name=item_name)
+
         asset_ids_with_prices = SteamTraderUI.set_prices_for_cards(cards_to_sell)
         for index, (asset_id, price) in enumerate(asset_ids_with_prices.items()):
             self.__sell_items_queue.put((asset_id, price))

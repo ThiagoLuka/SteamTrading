@@ -25,4 +25,4 @@ class QueryBuilderPG:
 
     @staticmethod
     def __check_null(string: str) -> bool:
-        return string == 'None'
+        return string == 'None' or string == 'nan'

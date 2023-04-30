@@ -1,3 +1,5 @@
+from typing import Optional
+
 from repositories.QueryBuilderPG import QueryBuilderPG
 from db.DBController import DBController
 
@@ -12,6 +14,22 @@ class ItemsSteamRepository:
             {'JOIN item_steam_types '
                 'ON items_steam.item_steam_type_id = item_steam_types.id'
             if with_type_names else ''};
+        """
+        result = DBController.execute(query=query, get_result=True)
+        return result
+
+    @staticmethod
+    def get_all_by_game(columns: list, game_id: str, item_types: Optional[list] = None):
+        if item_types:
+            item_types = "'" + "', '".join(item_types) + "'"
+        query = f"""
+            SELECT {', '.join(columns)}
+            FROM items_steam
+            JOIN item_steam_types
+                ON items_steam.item_steam_type_id = item_steam_types.id
+            WHERE
+                game_id = {game_id}
+                {f'AND item_steam_types.name IN ({item_types})' if item_types else ''};
         """
         result = DBController.execute(query=query, get_result=True)
         return result
@@ -71,6 +89,31 @@ class ItemsSteamRepository:
             SELECT {', '.join(columns)}
             FROM items_steam
             WHERE (game_id, market_url_name) IN ({target_tuples})
+        """
+        result = DBController.execute(query=query, get_result=True)
+        return result
+
+    @staticmethod
+    def get_booster_pack(columns: list, game_id: str) -> list[tuple]:
+        query = f"""
+            SELECT {', '.join(columns)}
+            FROM items_steam
+            INNER JOIN item_booster_packs ibp ON items_steam.id = ibp.item_steam_id
+            WHERE items_steam.game_id = '{game_id}';
+        """
+        result = DBController.execute(query=query, get_result=True)
+        return result
+
+    @staticmethod
+    def get_game_cards(columns: list, game_id: str) -> list[tuple]:
+        query = f"""
+            SELECT {', '.join(columns)}
+            FROM items_steam
+            INNER JOIN item_trading_cards itc ON items_steam.id = itc.item_steam_id
+            WHERE
+                items_steam.game_id = '{game_id}'
+                AND foil = False
+            ORDER BY set_number;
         """
         result = DBController.execute(query=query, get_result=True)
         return result

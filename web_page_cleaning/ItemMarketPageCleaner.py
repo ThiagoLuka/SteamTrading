@@ -14,23 +14,18 @@ class ItemMarketPageCleaner:
         else:
             raise Exception('Unknown page response')
 
-    def get_buy_order_price_and_quantity(self) -> tuple[int, int]:
-        """still needs work"""
-        pass
-        # default_return_value = (0, 0)
-        #
-        # buy_and_sell_listings = self.__page.find_class('my_listing_section')
-        # if not buy_and_sell_listings:
-        #     return default_return_value
-        #
-        # # [0] for sell listings div, [1] for buy orders div
-        # buy_order_div = buy_and_sell_listings[1]
-        # if buy_order_div.find_class('my_market_header_count')[0].text_content() == '(0)':
-        #     return default_return_value
-        #
-        # raw_buy_order = buy_order_div.find_class('market_listing_price')[0].text_content().split()
-        #
-        # price = int(raw_buy_order[-1].replace(',', ''))
-        # quantity = int(raw_buy_order[0])
-        #
-        # return price, quantity
+    def get_buy_order_info(self) -> tuple[str, int, int]:
+        listings_div = self.__page.get_element_by_id('tabContentsMyListings')
+
+        sell_listings = listings_div.getchildren()[0]
+        buy_order = listings_div.getchildren()[1]
+
+        if buy_order.find_class('market_listing_price'):
+            listing_div_values = dict(buy_order.find_class('market_listing_row market_recent_listing_row')[0].items())
+            steam_buy_order_id = listing_div_values['id'].replace('mybuyorder_', '')
+            buy_order_data = buy_order.find_class('market_listing_price')[0].text_content().split()
+            quantity = int(buy_order_data[0])
+            price = int(buy_order_data[-1].replace(',', ''))
+            return steam_buy_order_id, quantity, price
+
+        return '', 0, 0

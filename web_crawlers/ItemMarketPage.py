@@ -1,4 +1,5 @@
 import requests
+import webbrowser
 
 from .SteamWebPage import SteamWebPage
 
@@ -21,6 +22,10 @@ class ItemMarketPage(SteamWebPage, name='item_market_page'):
     def interact(self, cookies: dict, **kwargs) -> requests.Response:
 
         url = self.generate_url(**kwargs)
+
+        if 'open_web_browser' in kwargs.keys():
+            if kwargs['open_web_browser']:
+                webbrowser.open(url, new=2)
 
         response = requests.get(url, cookies=cookies)
         return response

@@ -20,6 +20,20 @@ class SteamGames(
     def __init__(self, table: str = 'default', **data):
         super().__init__(table, **data)
 
+    # I should implement multiple games in a single SteamGames instance later
+    # it should look like list(game.df.loc[:, 'id']) or something like that
+    @property
+    def id(self):
+        return self.df.loc[0, 'id']
+
+    @property
+    def name(self):
+        return self.df.loc[0, 'name']
+
+    @property
+    def market_id(self):
+        return self.df.loc[0, 'market_id']
+
     def save(self) -> None:
         saved = SteamGames.get_all()
         new_and_update = PandasUtils.df_set_difference(self.df, saved.df, 'name')
@@ -40,10 +54,22 @@ class SteamGames(
         return SteamGames._from_db('default', data)
 
     @staticmethod
+    def get_all_by_name(name: str) -> 'SteamGames':
+        cols = SteamGames._get_class_columns()
+        data = SteamGamesRepository.get_by_name(name, cols)
+        return SteamGames._from_db('default', data)
+
+    @staticmethod
     def get_all_with_trading_cards_not_registered() -> 'SteamGames':
         table = 'default'
         data = SteamGamesRepository.get_all_with_trading_cards_not_registered()
         return SteamGames._from_db(table, data)
+
+    @staticmethod
+    def get_id_by_name(name: str) -> str:
+        cols = SteamGames._get_class_columns()
+        result = SteamGamesRepository.get_by_name(name, cols)
+        return result[0][0]
 
     @staticmethod
     def get_id_by_market_id(market_id: str) -> str:

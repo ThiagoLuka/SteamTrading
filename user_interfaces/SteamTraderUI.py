@@ -48,3 +48,14 @@ class SteamTraderUI:
             price = InputValidation.int_within_range(0, 100, f'  {card_name}: ')
             asset_ids_with_prices.update({asset_id: price for asset_id in assets})
         return asset_ids_with_prices
+
+    @staticmethod
+    def buy_orders_header(game_name: str) -> None:
+        print(f'\n Buy orders from: {game_name}')
+
+    @staticmethod
+    def show_buy_order(qtd: int, price: int, item_name: str) -> None:
+        if qtd == 0:
+            print(f" {qtd:>3} @  R$ {price / 100:.2f}*  {item_name}")
+        else:
+            print(f" {qtd:>3} @  R$ {price / 100:.2f}   {item_name}")

@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pandas as pd
 
 from data_models.PandasDataModel import PandasDataModel
@@ -130,3 +132,31 @@ class ItemsSteam(
         df_result = pd.merge(df, items[['id', 'game_id', 'market_url_name']])
         ids = df_result['id'].to_list()
         return ids
+
+    @staticmethod
+    def get_booster_pack_and_cards_market_url(game_id: str) -> 'ItemsSteam':
+        booster_pack = ItemsSteam._from_db(
+            'items_steam',
+            ItemsSteamRepository.get_booster_pack(
+                ['items_steam.id as id', 'items_steam.game_id', 'item_steam_type_id', 'name', 'market_url_name'],
+                game_id
+            )
+        )
+        cards = ItemsSteam._from_db(
+            'items_steam',
+            ItemsSteamRepository.get_game_cards(
+                ['items_steam.id as id', 'items_steam.game_id', 'item_steam_type_id', 'name', 'market_url_name'],
+                game_id
+            )
+        )
+        items = booster_pack + cards
+        return items
+
+    @staticmethod
+    def get_game_items(game_id: str, item_types: Optional[list] = None):
+        cols = ItemsSteam._get_class_columns()
+        cols[cols.index('id')] = 'items_steam.id'
+        cols[cols.index('type_name')] = 'item_steam_types.name'
+        cols[cols.index('name')] = 'items_steam.name as name'
+        data = ItemsSteamRepository.get_all_by_game(columns=cols, game_id=game_id, item_types=item_types)
+        return ItemsSteam._from_db('default', data)
