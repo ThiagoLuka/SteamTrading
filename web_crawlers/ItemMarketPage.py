@@ -26,6 +26,9 @@ class ItemMarketPage(SteamWebPage, name='item_market_page'):
         if 'open_web_browser' in kwargs.keys():
             if kwargs['open_web_browser']:
                 webbrowser.open(url, new=2)
+                empty_res = requests.Response()
+                empty_res.status_code = 500
+                return empty_res
 
         response = requests.get(url, cookies=cookies)
         return response

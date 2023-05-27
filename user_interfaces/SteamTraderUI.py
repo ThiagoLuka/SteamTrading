@@ -8,11 +8,12 @@ class SteamTraderUI:
         print(
             '\n-- MENU STEAM TRADER --\n'
             '1 - Overview: marketable cards by game\n'
-            '2 - Open booster packs\n'
-            '3 - Sell cards of a game\n'
+            '2 - Update buy orders\n'
+            '3 - Open booster packs\n'
+            '4 - Sell cards of a game\n'
             '0 - Back to main menu'
         )
-        return InputValidation.int_within_range(0, 3)
+        return InputValidation.int_within_range(0, 4)
 
     @staticmethod
     def overview_marketable_cards(data: dict, inv_total_size: int) -> None:
@@ -29,6 +30,10 @@ class SteamTraderUI:
         print(f'\nCards displayed:  {total_shown:>5}')
         print(f'Total marketable: {total_marketable_cards:>5}')
         print(f'Inventory size:   {inv_total_size:>5}')
+
+    @staticmethod
+    def update_buy_orders_prompt_message():
+        return InputValidation.int_within_range(0, 100, 'How many games do you wish to update? ')
 
     @staticmethod
     def view_trading_cards_to_sell(cards: dict) -> None:

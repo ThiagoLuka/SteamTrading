@@ -19,8 +19,10 @@ class BuyOrders(
         'buy_orders': (
             'buy_order_id', 'steam_buy_order_id', 'user_id', 'item_steam_id', 'active', 'price',
             'qtd_start', 'qtd_estimate', 'qtd_current', 'created_at', 'updated_at', 'removed_at'),
-    }
+    },
+    repository=BuyOrdersRepository
 ):
+
     def __init__(self, table: str = 'default', **data):
         super().__init__(table, **data)
 
@@ -59,3 +61,9 @@ class BuyOrders(
         if last_buy_order.empty or not last_buy_order.df.loc[0, 'active']:
             return
         BuyOrdersRepository.set_last_buy_order_to_inactive(steam_item_id, user_id)
+
+    @staticmethod
+    def get_game_ids_with_most_outdated_orders(n_of_games: int) -> list:
+        game_ids_and_oldest_order_date = BuyOrdersRepository.get_game_ids_with_most_outdated_orders(n_of_games)
+        game_ids = [game_id for game_id, oldest_buy_order_timestamp in game_ids_and_oldest_order_date]
+        return game_ids

@@ -54,6 +54,13 @@ class SteamGames(
         return SteamGames._from_db('default', data)
 
     @staticmethod
+    def get_all_by_id(game_ids: list) -> 'SteamGames':
+        cols = SteamGames._get_class_columns()
+        game_ids = [str(game_id) for game_id in game_ids]
+        data = SteamGamesRepository.get_all_by_id(game_ids, cols)
+        return SteamGames._from_db('default', data)
+
+    @staticmethod
     def get_all_by_name(name: str) -> 'SteamGames':
         cols = SteamGames._get_class_columns()
         data = SteamGamesRepository.get_by_name(name, cols)

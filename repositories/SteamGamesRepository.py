@@ -27,6 +27,15 @@ class SteamGamesRepository:
         return result
 
     @staticmethod
+    def get_all_by_id(ids: list[str], columns: list):
+        query = f"""
+            SELECT {', '.join(columns)} FROM games
+            WHERE id IN ({', '.join(ids)});
+        """
+        result = DBController.execute(query=query, get_result=True)
+        return result
+
+    @staticmethod
     def get_by_name(name: str, columns: list) -> list[tuple]:
         name = QueryBuilderPG.sanitize_string(name)
         query = f"""

@@ -31,10 +31,12 @@ class SteamTraderController:
             if command == 1:
                 self.overview_marketable_cards()
             if command == 2:
+                self.__update_buy_orders()
+            if command == 3:
                 game_name = GenericUI.get_game_name()
                 self.__user.open_booster_packs(game_name)
                 self.__user.update_inventory()
-            if command == 3:
+            if command == 4:
                 self.sell_multiple_cards()
 
             if command == 0:
@@ -48,6 +50,25 @@ class SteamTraderController:
         inventory_size = SteamInventory.get_current_inventory_size(self.__user_id)
         SteamTraderUI.overview_marketable_cards(data_for_overview, inventory_size)
 
+    def __update_buy_orders(self):
+        n_games_to_update = SteamTraderUI.update_buy_orders_prompt_message()
+        if not n_games_to_update:
+            return
+        game_ids: list[str] = BuyOrders.get_game_ids_with_most_outdated_orders(n_games_to_update)
+        games = SteamGames.get_all_by_id(game_ids)
+
+        for idx, game_data in enumerate(games):
+            print(f"{idx + 1} - {game_data['name']}")
+            game_items = ItemsSteam.get_booster_pack_and_cards_market_url(game_data['id'])
+            for steam_item_data in game_items:
+                steam_item = ItemsSteam('items_steam', **steam_item_data)
+                self.__user.update_buy_order(
+                    game_market_id=game_data['market_id'],
+                    steam_item=steam_item,
+                    open_web_browser=False
+                )
+                time.sleep(5)
+
     def sell_multiple_cards(self):
         game_name = GenericUI.get_game_name()
         game = SteamGames.get_all_by_name(game_name)
@@ -59,14 +80,13 @@ class SteamTraderController:
 
         for steam_item_data in game_items:
             steam_item = ItemsSteam('items_steam', **steam_item_data)
-            open_web_browser = False
             if steam_item.df.loc[0, 'name'] in cards_to_sell_names:
-                open_web_browser = True
-            self.__user.update_buy_order(
-                game_market_id=game.market_id,
-                steam_item=steam_item,
-                open_web_browser=open_web_browser
-            )
+                self.__user.update_buy_order(
+                    game_market_id=game.market_id,
+                    steam_item=steam_item,
+                    open_web_browser=True
+                )
+                time.sleep(0.5)
 
         buy_orders = BuyOrders.get_last_buy_order(list(game_items.df.id), self.__user_id)
         SteamTraderUI.buy_orders_header(game.name)
@@ -89,7 +109,7 @@ class SteamTraderController:
                 continue
             else:
                 if self.__cards_sold_count % 100 == 0:
-                    time.sleep(25)
+                    time.sleep(10)
                 self.__user.create_sell_listing(asset_id=asset_id, price=price)
                 self.__sell_items_queue.task_done()
                 self.__cards_sold_count += 1

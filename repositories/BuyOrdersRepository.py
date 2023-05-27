@@ -13,6 +13,21 @@ class BuyOrdersRepository:
         return result
 
     @staticmethod
+    def get_game_ids_with_most_outdated_orders(n_of_games: int) -> list[tuple]:
+        query = f"""
+            SELECT
+                DISTINCT(is2.game_id), 
+                MIN(bo.updated_at) OVER (PARTITION BY is2.game_id ORDER BY bo.updated_at) oldest_updated_item_timestamp
+            FROM buy_orders bo 
+            INNER JOIN items_steam is2 ON is2.id = bo.item_steam_id 
+            WHERE active 
+            ORDER BY oldest_updated_item_timestamp
+            LIMIT {n_of_games};
+        """
+        result = DBController.execute(query=query, get_result=True)
+        return result
+
+    @staticmethod
     def get_last_buy_orders(columns: list, steam_item_ids: list, user_id: int) -> list[tuple]:
         steam_item_ids = [str(item) for item in steam_item_ids]
         query = f"""
