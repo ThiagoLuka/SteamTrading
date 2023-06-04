@@ -32,27 +32,39 @@ class SteamTraderUI:
         print(f'Inventory size:   {inv_total_size:>5}')
 
     @staticmethod
-    def update_buy_orders_prompt_message():
-        return InputValidation.int_within_range(0, 100, 'How many games do you wish to update? ')
+    def update_buy_orders_prompt_message() -> tuple[bool, int]:
+        create_buy_orders = InputValidation.yes_or_no('Also create new buy orders?')
+        games_to_update = InputValidation.int_within_range(0, 100, 'How many games do you wish to update? ')
+        return create_buy_orders, games_to_update
 
     @staticmethod
-    def view_trading_cards_to_sell(cards: dict) -> None:
+    def view_trading_cards_to_sell(cards: list) -> None:
         total_cards = 0
+        print('\nItems to sell:')
         print('Cards ||     Name')
-        for card_index in cards.keys():
-            print(f'{len(cards[card_index]):>4}  ||  {card_index}')
-            total_cards += len(cards[card_index])
-        print(f'Total cards: {total_cards}')
+        for name, qtd, idx in cards:
+            print(f'{qtd:>4}  ||  {idx}-{name}')
+            total_cards += qtd
+        print(f'Total cards: {total_cards}\n')
 
     @staticmethod
-    def set_prices_for_cards(cards: dict) -> dict:
-        SteamTraderUI.view_trading_cards_to_sell(cards)
-        asset_ids_with_prices: dict = {}
-        print('Set prices:')
-        for card_name, assets in cards.items():
-            price = InputValidation.int_within_range(0, 100, f'  {card_name}: ')
-            asset_ids_with_prices.update({asset_id: price for asset_id in assets})
-        return asset_ids_with_prices
+    def set_sell_price_for_item(item_name: str, item_number: int) -> int:
+        return InputValidation.int_within_range(0, 100, f' {item_number}-{item_name}: ')
+
+    @staticmethod
+    def set_buy_order_for_item(item_name: str, item_number: int) -> tuple[int, int]:
+        print(f' {item_number} - {item_name} ')
+        price = InputValidation.int_within_range(0, 150, f' Price: ')
+        qtd = InputValidation.int_within_range(0, 200, f' Quantity: ')
+        return price, qtd
+
+    @staticmethod
+    def create_buy_order_failed() -> None:
+        print('Something went wrong with the creation of the buy order')
+
+    @staticmethod
+    def set_buy_orders_header() -> None:
+        print('\nSetting buy orders')
 
     @staticmethod
     def buy_orders_header(game_name: str) -> None:

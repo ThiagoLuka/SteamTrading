@@ -77,13 +77,12 @@ class SteamInventory(
         return assets_id_list
 
     @staticmethod
-    def get_marketable_cards_asset_ids(user_id: int, game_name: str):
-        data = SteamInventoryRepository.get_marketable_cards_asset_ids(user_id, game_name)
-        # set number, card_name, card_asset_id
-        card_names = {row[1] for row in data}
-        data_formatted = {f'{row[0]}-{row[1]}': [] for row in data}
-        for card_index in data_formatted.keys():
-            data_formatted[card_index] = [
-                row[2] for row in data if card_index == f'{row[0]}-{row[1]}'
-            ]
-        return card_names, data_formatted
+    def get_marketable_cards_asset_ids(user_id: int, game_id: int):
+        data = SteamInventoryRepository.get_marketable_cards_asset_ids(user_id, game_id)
+        cards_asset_ids: dict = {}
+        for row in data:
+            card_name, asset_id = row[0], row[1]
+            if card_name not in cards_asset_ids.keys():
+                cards_asset_ids.update({card_name: []})
+            cards_asset_ids[card_name].append(asset_id)
+        return cards_asset_ids

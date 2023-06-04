@@ -13,15 +13,41 @@ class BuyOrdersRepository:
         return result
 
     @staticmethod
-    def get_game_ids_with_most_outdated_orders(n_of_games: int) -> list[tuple]:
+    def get_game_ids_with_most_outdated_orders(n_of_games: int, user_id: int) -> list[tuple]:
         query = f"""
             SELECT
                 DISTINCT(is2.game_id), 
                 MIN(bo.updated_at) OVER (PARTITION BY is2.game_id ORDER BY bo.updated_at) oldest_updated_item_timestamp
             FROM buy_orders bo 
             INNER JOIN items_steam is2 ON is2.id = bo.item_steam_id 
-            WHERE active 
+            WHERE active AND user_id = {user_id}
             ORDER BY oldest_updated_item_timestamp
+            LIMIT {n_of_games};
+        """
+        result = DBController.execute(query=query, get_result=True)
+        return result
+
+    @staticmethod
+    def get_game_ids_to_create_buy_order(n_of_games: int, user_id: int) -> list[tuple]:
+        query = f"""
+            WITH active_counter AS (
+                SELECT
+                    is2.game_id,
+                    item_steam_id,
+                    removed_at,
+                    COUNT(CASE WHEN bo.active THEN 1 END) OVER win1 AS active_count,
+                    MAX(bo.removed_at) OVER win1 AS last_item_remove_date
+                FROM buy_orders bo
+                INNER JOIN items_steam is2 ON bo.item_steam_id = is2.id 
+                INNER JOIN user_game_trade ugt ON is2.game_id = ugt.game_id 
+                WHERE ugt.user_id = {user_id}
+                WINDOW win1 AS (PARTITION BY bo.item_steam_id)
+            )
+            SELECT 
+                DISTINCT(game_id), last_item_remove_date
+            FROM active_counter
+            WHERE active_count = 0
+            ORDER BY last_item_remove_date
             LIMIT {n_of_games};
         """
         result = DBController.execute(query=query, get_result=True)

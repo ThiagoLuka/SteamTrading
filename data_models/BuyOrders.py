@@ -46,6 +46,11 @@ class BuyOrders(
         BuyOrdersRepository.update_buy_order(buy_order_id, steam_buy_order_id, qtd)
         return
 
+    def finished(self) -> list[int]:
+        finished_df = self.df[self.df['qtd_current'] == 0]
+        item_ids = finished_df['item_steam_id'].to_list()
+        return item_ids
+
     @staticmethod
     def get_last_buy_order(steam_item_ids: Union[list, str], user_id: int) -> 'BuyOrders':
         if type(steam_item_ids) == str:
@@ -63,7 +68,13 @@ class BuyOrders(
         BuyOrdersRepository.set_last_buy_order_to_inactive(steam_item_id, user_id)
 
     @staticmethod
-    def get_game_ids_with_most_outdated_orders(n_of_games: int) -> list:
-        game_ids_and_oldest_order_date = BuyOrdersRepository.get_game_ids_with_most_outdated_orders(n_of_games)
-        game_ids = [game_id for game_id, oldest_buy_order_timestamp in game_ids_and_oldest_order_date]
+    def get_game_ids_with_most_outdated_orders(n_of_games: int, user_id: int) -> list:
+        game_ids_and_date = BuyOrdersRepository.get_game_ids_with_most_outdated_orders(n_of_games, user_id)
+        game_ids = [game_id for game_id, timestamp in game_ids_and_date]
+        return game_ids
+
+    @staticmethod
+    def get_game_ids_to_be_updated(n_of_games: int, user_id: int) -> list:
+        game_ids_and_date = BuyOrdersRepository.get_game_ids_to_create_buy_order(n_of_games, user_id)
+        game_ids = [game_id for game_id, timestamp in game_ids_and_date]
         return game_ids

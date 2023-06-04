@@ -67,23 +67,19 @@ class SteamInventoryRepository:
         return result
 
     @staticmethod
-    def get_marketable_cards_asset_ids(user_id: int, game_name: str) -> list[tuple]:
-        game_name = QueryBuilderPG.sanitize_string(game_name)
+    def get_marketable_cards_asset_ids(user_id: int, game_id: int) -> list[tuple]:
         query = f"""
             SELECT 
-                itc.set_number
-                , is2.name
+                is2.name
                 , isa.asset_id
             FROM items_steam is2 
             INNER JOIN item_steam_assets isa ON is2.id = isa.item_steam_id
-            INNER JOIN item_trading_cards itc ON is2.id = itc.item_steam_id
-            INNER JOIN games g ON is2.game_id = g.id 
             WHERE 
                 user_id = '{user_id}'
+                AND item_steam_type_id = '2'  -- item_type = card
                 AND marketable = True 
-                AND g.name = '{game_name}'
-                AND isa.removed_at IS NULL
-            ORDER BY itc.set_number;
+                AND is2.game_id = '{game_id}'
+                AND isa.removed_at IS NULL;
         """
         result = DBController.execute(query=query, get_result=True)
         return result

@@ -69,6 +69,16 @@ class SteamUser:
             print(f'\n{status}: {result}\n')
             return
 
+    def create_buy_order(self, item_url_name: str, price: int, qtd: int, game_market_id: int) -> dict:
+        status, result = self.__crawler.interact(
+            'create_buy_order',
+            game_market_id=game_market_id,
+            item_url_name=item_url_name,
+            price=price,
+            quantity=qtd
+        )
+        return result.json()
+
     def update_buy_order(self, game_market_id: str, steam_item: ItemsSteam, open_web_browser: bool):
         ScrapItemMarketPage().run(
             self.__crawler,

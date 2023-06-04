@@ -1,6 +1,6 @@
 
 --DROP TABLE IF EXISTS buy_orders;
-
+--DROP TABLE IF EXISTS user_game_trade;
 
  CREATE TABLE IF NOT EXISTS buy_orders
   (
@@ -16,4 +16,11 @@
   	, created_at TIMESTAMP NOT NULL
   	, updated_at TIMESTAMP NOT NULL
   	, removed_at TIMESTAMP
+  );
+
+
+  CREATE TABLE IF NOT EXISTS user_game_trade
+  (
+  	    user_id INT NOT NULL REFERENCES users(id)
+  	  , game_id INT NOT NULL REFERENCES games(id)
   );

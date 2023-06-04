@@ -26,6 +26,10 @@ class ItemsSteam(
     def __init__(self, table: str = 'default', **data):
         super().__init__(table, **data)
 
+    def __iter__(self):
+        for index, row in self.df.iterrows():
+            yield ItemsSteam('items_steam', **dict(row))
+
     def save(self):
         if self.columns == ItemsSteam._get_class_columns('default'):
             self.__save_default()
@@ -52,8 +56,11 @@ class ItemsSteam(
 
     def __save_types(self) -> None:
         saved_types: list[tuple] = ItemsSteamRepository.get_all_types()
-        for row in self:  # it's always just a couple types, it's okay to iterate over it
-            values = tuple(row.values())
+        # it's always just a couple types, it's okay to iterate over it
+        # this method has to be refactored soon
+        for index, row in self.df.iterrows():
+            values = tuple(dict(row).values())
+            values = int(values[0]), values[1]
             if values in saved_types:
                 continue
             type_id = values[0]
@@ -134,7 +141,7 @@ class ItemsSteam(
         return ids
 
     @staticmethod
-    def get_booster_pack_and_cards_market_url(game_id: str) -> 'ItemsSteam':
+    def get_booster_pack_and_cards_market_url(game_id: str, booster_pack_last: bool = False) -> 'ItemsSteam':
         booster_pack = ItemsSteam._from_db(
             'items_steam',
             ItemsSteamRepository.get_booster_pack(
@@ -149,7 +156,10 @@ class ItemsSteam(
                 game_id
             )
         )
-        items = booster_pack + cards
+        if booster_pack_last:
+            items = cards + booster_pack
+        else:
+            items = booster_pack + cards
         return items
 
     @staticmethod
