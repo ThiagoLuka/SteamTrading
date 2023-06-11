@@ -32,6 +32,10 @@ class SteamTraderUI:
         print(f'Inventory size:   {inv_total_size:>5}')
 
     @staticmethod
+    def sell_cards_prompt_message() -> int:
+        return InputValidation.int_within_range(0, 200, 'How many games do you wish to sell cards from? ')
+
+    @staticmethod
     def update_buy_orders_prompt_message() -> tuple[bool, int]:
         create_buy_orders = InputValidation.yes_or_no('Also create new buy orders?')
         games_to_update = InputValidation.int_within_range(0, 100, 'How many games do you wish to update? ')
@@ -45,7 +49,7 @@ class SteamTraderUI:
         for name, qtd, idx in cards:
             print(f'{qtd:>4}  ||  {idx}-{name}')
             total_cards += qtd
-        print(f'Total cards: {total_cards}\n')
+        print(f'Total cards: {total_cards}')
 
     @staticmethod
     def set_sell_price_for_item(item_name: str, item_number: int) -> int:

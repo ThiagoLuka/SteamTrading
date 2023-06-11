@@ -17,18 +17,12 @@ class SteamTraderController:
         self.__user = steam_user
         self.__user_id = steam_user.user_id
         self.__cards_sold_count = 0
-        self.__sell_items_queue = Queue()
-        sell_items_thread = Thread(
-            target=self.__sell_item_task,
+        self.__market_actions_queue = Queue()
+        market_actions_thread = Thread(
+            target=self.__market_actions_controller,
             daemon=True,
         )
-        sell_items_thread.start()
-        self.__create_buy_orders_queue = Queue()
-        create_buy_orders_thread = Thread(
-            target=self.__create_buy_order_task,
-            daemon=True
-        )
-        create_buy_orders_thread.start()
+        market_actions_thread.start()
 
     def run_ui(self) -> None:
         while True:
@@ -45,8 +39,7 @@ class SteamTraderController:
                 self.sell_multiple_cards()
 
             if command == 0:
-                self.__sell_items_queue.join()
-                self.__create_buy_orders_queue.join()
+                self.__market_actions_queue.join()
                 return None
 
     def overview_marketable_cards(self) -> None:
@@ -66,7 +59,6 @@ class SteamTraderController:
             game_ids: list[str] = BuyOrders.get_game_ids_to_be_updated(n_games_to_update, self.__user_id)
         else:
             game_ids: list[str] = BuyOrders.get_game_ids_with_most_outdated_orders(n_games_to_update, self.__user_id)
-
         games = SteamGames.get_all_by_id(game_ids)
 
         for idx, game_data in enumerate(games):
@@ -74,35 +66,41 @@ class SteamTraderController:
             game_items = ItemsSteam.get_booster_pack_and_cards_market_url(game_data['id'], booster_pack_last=True)
             if create_buy_oders:
                 self.__create_buy_orders(game_items, game_data)
-                continue
-            for steam_item in game_items:
-                self.__update_buy_orders_from_market_page(steam_item, game_data['market_id'])
+            else:
+                self.__update_buy_orders_from_market_page(game_items, game_data['market_id'])
 
     def sell_multiple_cards(self) -> None:
-        game_name = GenericUI.get_game_name()
-        game = SteamGames.get_all_by_name(game_name)
-        if game.empty:
-            return
-        game_items = ItemsSteam.get_booster_pack_and_cards_market_url(game.id)
+        n_games_to_update = SteamTraderUI.sell_cards_prompt_message()
+        game_ids = SteamInventory.get_game_ids_with_cards_to_be_sold(n_games_to_update, self.__user_id)
+        games = SteamGames.get_all_by_id(game_ids)
 
-        items_to_sell = SteamInventory.get_marketable_cards_asset_ids(self.__user_id, game.id)
+        for idx, game_data in enumerate(games):
+            game_items = ItemsSteam.get_booster_pack_and_cards_market_url(game_data['id'])
 
-        buy_orders = BuyOrders.get_last_buy_order(list(game_items.df.id), self.__user_id)
-        self.__show_buy_orders(buy_orders, game_items, game.name)
+            item_name_with_asset_ids = SteamInventory.get_marketable_cards_asset_ids(self.__user_id, game_data['id'])
 
-        self.__show_items_to_sell(game_items, items_to_sell)
+            buy_orders = BuyOrders.get_game_last_buy_orders(game_data['id'], self.__user_id)
+            self.__show_game_buy_orders(buy_orders, game_items, game_data['name'])
 
-        for idx, steam_item in enumerate(game_items):
-            item_name = steam_item.df.loc[0, 'name']
-            if item_name in items_to_sell.keys():
-                self.__open_item_market_page_in_browser(steam_item, game.market_id)
-                price = SteamTraderUI.set_sell_price_for_item(item_name, idx)
-                for asset_id in items_to_sell[item_name]:
-                    self.__sell_items_queue.put((asset_id, price))
+            self.__show_items_to_sell(game_items, item_name_with_asset_ids)
+
+            for idx2, steam_item in enumerate(game_items):
+                item_id = steam_item.df.loc[0, 'id']
+                item_name = steam_item.df.loc[0, 'name']
+                if item_name in item_name_with_asset_ids.keys():
+                    self.__open_item_market_page_in_browser(steam_item, game_data['market_id'])
+                    last_buy_orders = BuyOrders.get_item_last_buy_orders(item_id, self.__user_id, amount=2)
+                    self.__show_item_buy_orders(last_buy_orders, item_name)
+                    price = SteamTraderUI.set_sell_price_for_item(item_name, idx2)
+                    self.__market_actions_queue.put((
+                        'create_sell_listing', {
+                            'asset_ids': item_name_with_asset_ids[item_name],
+                            'price': price,
+                        }))
 
     def __create_buy_orders(self, game_items: ItemsSteam, game_data: dict) -> None:
-        buy_orders = BuyOrders.get_last_buy_order(list(game_items.df.id), self.__user_id)
-        self.__show_buy_orders(buy_orders, game_items, game_data['name'])
+        buy_orders = BuyOrders.get_game_last_buy_orders(game_data['id'], self.__user_id)
+        self.__show_game_buy_orders(buy_orders, game_items, game_data['name'])
 
         SteamTraderUI.set_buy_orders_header()
         item_ids_with_buy_orders_finished = buy_orders.finished()
@@ -115,10 +113,34 @@ class SteamTraderController:
                 price, qtd = SteamTraderUI.set_buy_order_for_item(item_name, idx+1)
                 if not price or not qtd:
                     continue
-                self.__create_buy_orders_queue.put((item_id, item_url_name, price, qtd, game_data['market_id']))
+                self.__market_actions_queue.put((
+                    'create_buy_order', {
+                        'item_id': item_id,
+                        'item_url_name': item_url_name,
+                        'price': price,
+                        'qtd': qtd,
+                        'game_market_id': game_data['market_id']
+                    }))
+
+    def __update_buy_orders_from_market_page(self, game_items: ItemsSteam, game_market_id: str) -> None:
+        for steam_item in game_items:
+            self.__user.update_buy_order(
+                game_market_id=game_market_id,
+                steam_item=steam_item,
+                open_web_browser=False
+            )
+            time.sleep(10)
+
+    def __open_item_market_page_in_browser(self, steam_item: ItemsSteam, game_market_id: str) -> None:
+        self.__user.update_buy_order(
+            game_market_id=game_market_id,
+            steam_item=steam_item,
+            open_web_browser=True
+        )
+        time.sleep(0.5)
 
     @staticmethod
-    def __show_buy_orders(buy_orders: BuyOrders, game_items: ItemsSteam, game_name: str) -> None:
+    def __show_game_buy_orders(buy_orders: BuyOrders, game_items: ItemsSteam, game_name: str) -> None:
         SteamTraderUI.buy_orders_header(game_name)
         for steam_item in game_items:
             buy_order_filter = buy_orders.df['item_steam_id'] == steam_item.df.loc[0, 'id']
@@ -126,6 +148,12 @@ class SteamTraderController:
             buy_order_price = list(buy_orders.df.loc[buy_order_filter, 'price'].values)[0]
             item_name = steam_item.df.loc[0, 'name']
             SteamTraderUI.show_buy_order(qtd=buy_order_qtd, price=buy_order_price, item_name=item_name)
+
+    @staticmethod
+    def __show_item_buy_orders(buy_orders: BuyOrders, item_name: str) -> None:
+        SteamTraderUI.buy_orders_header(item_name)
+        for bo in buy_orders:
+            SteamTraderUI.show_buy_order(qtd=bo['qtd_current'], price=bo['price'], item_name=item_name)
 
     @staticmethod
     def __show_items_to_sell(game_items: ItemsSteam, items_to_sell: dict) -> None:
@@ -137,48 +165,40 @@ class SteamTraderController:
                 items_to_sell_print_formatted.append([item_name, to_sell_qtd, idx])
         SteamTraderUI.view_trading_cards_to_sell(items_to_sell_print_formatted)
 
-    def __update_buy_orders_from_market_page(self, steam_item: ItemsSteam, game_market_id: str) -> None:
-        self.__user.update_buy_order(
-            game_market_id=game_market_id,
-            steam_item=steam_item,
-            open_web_browser=False
-        )
-        time.sleep(15)
-
-    def __open_item_market_page_in_browser(self, steam_item: ItemsSteam, game_market_id: str) -> None:
-        self.__user.update_buy_order(
-            game_market_id=game_market_id,
-            steam_item=steam_item,
-            open_web_browser=True
-        )
-        time.sleep(0.5)
-
-    def __sell_item_task(self) -> None:
+    def __market_actions_controller(self) -> None:
         while True:
             try:
-                asset_id, price = self.__sell_items_queue.get()
+                cmd, kwargs = self.__market_actions_queue.get()
             except Empty:
                 continue
             else:
-                if self.__cards_sold_count % 100 == 0:
-                    time.sleep(10)
-                self.__user.create_sell_listing(asset_id=asset_id, price=price)
-                self.__cards_sold_count += 1
-                self.__sell_items_queue.task_done()
+                if cmd == 'create_sell_listing':
+                    self.__create_sell_listing_task(**kwargs)
+                elif cmd == 'create_buy_order':
+                    self.__create_buy_order_task(**kwargs)
+                self.__market_actions_queue.task_done()
 
-    def __create_buy_order_task(self) -> None:
-        while True:
-            try:
-                item_id, item_url_name, price, qtd, game_market_id = self.__create_buy_orders_queue.get()
-            except Empty:
-                continue
-            else:
-                response_content = self.__user.create_buy_order(item_url_name, price, qtd, game_market_id)
-                if response_content['success'] == 1:
-                    BuyOrders(
-                        steam_buy_order_id=response_content['buy_orderid'], user_id=self.__user_id,
-                        item_steam_id=item_id, active=True, price=price, qtd_current=qtd
-                    ).save()
-                else:
-                    SteamTraderUI.create_buy_order_failed()
-                self.__create_buy_orders_queue.task_done()
+
+    def __create_sell_listing_task(self, **kwargs) -> None:
+        asset_ids = kwargs['asset_ids']
+        price = kwargs['price']
+        for asset_id in asset_ids:
+            if self.__cards_sold_count % 100 == 0:
+                time.sleep(10)
+            self.__user.create_sell_listing(asset_id=asset_id, price=price)
+            self.__cards_sold_count += 1
+
+    def __create_buy_order_task(self, **kwargs) -> None:
+        item_id = kwargs['item_id']
+        item_url_name = kwargs['item_url_name']
+        price = kwargs['price']
+        qtd = kwargs['qtd']
+        game_market_id = kwargs['game_market_id']
+        response_content = self.__user.create_buy_order(item_url_name, price, qtd, game_market_id)
+        if response_content['success'] == 1:
+            BuyOrders(
+                steam_buy_order_id=response_content['buy_orderid'], user_id=self.__user_id,
+                item_steam_id=item_id, active=True, price=price, qtd_current=qtd
+            ).save()
+        else:
+            SteamTraderUI.create_buy_order_failed()

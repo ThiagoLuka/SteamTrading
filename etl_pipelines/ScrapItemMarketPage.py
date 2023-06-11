@@ -28,7 +28,7 @@ class ScrapItemMarketPage:
         steam_buy_order_id, quantity, price = page_cleaner.get_buy_order_info()
 
         if not steam_buy_order_id:
-            BuyOrders.handle_empty_from_market_page(str(steam_item.df.loc[0, 'id']), user_id)
+            BuyOrders.handle_empty_from_market_page(steam_item.df.loc[0, 'id'], user_id)
             return
 
         BuyOrders(

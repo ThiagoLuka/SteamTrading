@@ -71,6 +71,12 @@ class SteamInventory(
         return dict(data)
 
     @staticmethod
+    def get_game_ids_with_cards_to_be_sold(n_of_games: int, user_id: int) -> list:
+        game_ids_and_date = SteamInventoryRepository.get_game_ids_with_oldest_marketable_cards(n_of_games, user_id)
+        game_ids = [game_id for game_id, timestamp in game_ids_and_date]
+        return game_ids
+
+    @staticmethod
     def get_booster_pack_assets_id(user_id: int, game_name: str) -> list:
         data = SteamInventoryRepository.get_booster_pack_assets_id(user_id, game_name)
         assets_id_list = [row[0] for row in data]

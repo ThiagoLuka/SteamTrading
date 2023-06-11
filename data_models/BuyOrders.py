@@ -1,7 +1,5 @@
 from datetime import datetime
 
-from typing import Union
-
 from repositories.BuyOrdersRepository import BuyOrdersRepository
 from data_models.PandasDataModel import PandasDataModel
 from data_models.PandasUtils import PandasUtils
@@ -27,7 +25,7 @@ class BuyOrders(
         super().__init__(table, **data)
 
     def save(self) -> None:
-        last_buy_order = self.get_last_buy_order(self.df.item_steam_id, self.df.loc[0, 'user_id'])
+        last_buy_order = self.get_item_last_buy_orders(self.df.loc[0, 'item_steam_id'], self.df.loc[0, 'user_id'])
         if last_buy_order.empty or not last_buy_order.df.loc[0, 'active']:
             to_save = self.df.copy()
             to_save['qtd_start'] = self.df['qtd_current']
@@ -52,17 +50,22 @@ class BuyOrders(
         return item_ids
 
     @staticmethod
-    def get_last_buy_order(steam_item_ids: Union[list, str], user_id: int) -> 'BuyOrders':
-        if type(steam_item_ids) == str:
-            steam_item_ids = [steam_item_ids]
+    def get_game_last_buy_orders(game_id: int, user_id: int) -> 'BuyOrders':
         table = 'default'
         columns = BuyOrders._get_class_columns(table)
-        data = BuyOrdersRepository.get_last_buy_orders(columns, steam_item_ids, user_id)
+        data = BuyOrdersRepository.get_game_last_buy_orders(columns, game_id, user_id)
         return BuyOrders._from_db(table, data)
 
     @staticmethod
-    def handle_empty_from_market_page(steam_item_id: str, user_id: int) -> None:
-        last_buy_order = BuyOrders.get_last_buy_order(steam_item_id, user_id)
+    def get_item_last_buy_orders(steam_item_id: int, user_id: int, amount: int = 1) -> 'BuyOrders':
+        table = 'default'
+        columns = BuyOrders._get_class_columns(table)
+        data = BuyOrdersRepository.get_item_last_buy_orders(columns, steam_item_id, user_id, amount)
+        return BuyOrders._from_db(table, data)
+
+    @staticmethod
+    def handle_empty_from_market_page(steam_item_id: int, user_id: int) -> None:
+        last_buy_order = BuyOrders.get_item_last_buy_orders(steam_item_id, user_id)
         if last_buy_order.empty or not last_buy_order.df.loc[0, 'active']:
             return
         BuyOrdersRepository.set_last_buy_order_to_inactive(steam_item_id, user_id)

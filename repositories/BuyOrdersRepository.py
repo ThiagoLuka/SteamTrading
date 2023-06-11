@@ -54,16 +54,31 @@ class BuyOrdersRepository:
         return result
 
     @staticmethod
-    def get_last_buy_orders(columns: list, steam_item_ids: list, user_id: int) -> list[tuple]:
-        steam_item_ids = [str(item) for item in steam_item_ids]
+    def get_game_last_buy_orders(columns: list, game_id: int, user_id: int) -> list[tuple]:
+        query = f"""
+            WITH table_a AS (
+                SELECT
+                    bo.*,
+                    RANK() OVER (PARTITION BY item_steam_id ORDER BY created_at DESC) AS buy_order_rank
+                FROM buy_orders bo
+                INNER JOIN items_steam is2 ON bo.item_steam_id = is2.id
+                WHERE game_id = {game_id} AND user_id = {user_id}
+	        )
+            SELECT {', '.join(columns)}
+            FROM table_a
+            WHERE buy_order_rank = 1;
+        """
+        result = DBController.execute(query=query, get_result=True)
+        return result
+
+    @staticmethod
+    def get_item_last_buy_orders(columns: list, steam_item_id: int, user_id: int, amount: int):
         query = f"""
             SELECT {', '.join(columns)}
-            FROM buy_orders
-            WHERE
-                item_steam_id IN ('{"', '".join(steam_item_ids)}')
-                AND user_id = {user_id}
-            ORDER BY RANK() OVER (PARTITION BY item_steam_id ORDER BY created_at DESC)
-            LIMIT {len(steam_item_ids)};
+            FROM buy_orders bo 
+            WHERE item_steam_id = {steam_item_id} AND user_id = {user_id}
+            ORDER BY removed_at DESC
+            LIMIT {amount};
         """
         result = DBController.execute(query=query, get_result=True)
         return result
@@ -92,7 +107,7 @@ class BuyOrdersRepository:
         DBController.execute(query=query)
 
     @staticmethod
-    def set_last_buy_order_to_inactive(steam_item_id: str, user_id: int) -> None:
+    def set_last_buy_order_to_inactive(steam_item_id: int, user_id: int) -> None:
         update_time = datetime.now()
         query = f"""
             WITH to_update_id AS (

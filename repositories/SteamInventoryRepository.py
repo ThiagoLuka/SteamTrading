@@ -67,6 +67,35 @@ class SteamInventoryRepository:
         return result
 
     @staticmethod
+    def get_game_ids_with_oldest_marketable_cards(n_of_games: int, user_id: int) -> list[tuple]:
+        query = f"""
+            WITH table_a AS (
+                SELECT
+                    is2.game_id,
+                    user_id,
+                    MIN(created_at) OVER (PARTITION BY is2.game_id) AS first_asset_timestamp
+                FROM item_steam_assets isa 
+                INNER JOIN items_steam is2 ON isa.item_steam_id = is2.id
+                INNER JOIN item_trading_cards itc ON itc.item_steam_id = is2.id 
+                WHERE
+                    marketable
+                    AND removed_at IS NULL
+                    AND NOT foil
+                    AND user_id = {user_id}
+            )
+            SELECT 
+                DISTINCT(table_a.game_id), first_asset_timestamp
+            FROM table_a, user_game_trade ugt
+            WHERE
+                ugt.game_id = table_a.game_id
+                AND ugt.user_id = table_a.user_id
+            ORDER BY first_asset_timestamp
+            LIMIT {n_of_games};
+        """
+        result = DBController.execute(query=query, get_result=True)
+        return result
+
+    @staticmethod
     def get_marketable_cards_asset_ids(user_id: int, game_id: int) -> list[tuple]:
         query = f"""
             SELECT 
