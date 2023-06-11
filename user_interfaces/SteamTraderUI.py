@@ -9,11 +9,12 @@ class SteamTraderUI:
             '\n-- MENU STEAM TRADER --\n'
             '1 - Overview: marketable cards by game\n'
             '2 - Update buy orders\n'
-            '3 - Open booster packs\n'
-            '4 - Sell cards of a game\n'
+            '3 - Create new buy orders\n'
+            '4 - Open booster packs\n'
+            '5 - Sell cards of a game\n'
             '0 - Back to main menu'
         )
-        return InputValidation.int_within_range(0, 4)
+        return InputValidation.int_within_range(0, 5)
 
     @staticmethod
     def overview_marketable_cards(data: dict, inv_total_size: int) -> None:
@@ -32,14 +33,16 @@ class SteamTraderUI:
         print(f'Inventory size:   {inv_total_size:>5}')
 
     @staticmethod
-    def sell_cards_prompt_message() -> int:
-        return InputValidation.int_within_range(0, 200, 'How many games do you wish to sell cards from? ')
+    def update_buy_orders_prompt_message() -> int:
+        return InputValidation.int_within_range(0, 100, 'How many games do you wish to update? ')
 
     @staticmethod
-    def update_buy_orders_prompt_message() -> tuple[bool, int]:
-        create_buy_orders = InputValidation.yes_or_no('Also create new buy orders?')
-        games_to_update = InputValidation.int_within_range(0, 100, 'How many games do you wish to update? ')
-        return create_buy_orders, games_to_update
+    def create_buy_orders_prompt_message() -> int:
+        return InputValidation.int_within_range(0, 100, 'For how many games do you wish to create new buy orders? ')
+
+    @staticmethod
+    def sell_cards_prompt_message() -> int:
+        return InputValidation.int_within_range(0, 200, 'How many games do you wish to sell cards from? ')
 
     @staticmethod
     def view_trading_cards_to_sell(cards: list) -> None:
