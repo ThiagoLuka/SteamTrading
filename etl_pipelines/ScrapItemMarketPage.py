@@ -14,27 +14,31 @@ class ScrapItemMarketPage:
         steam_item: 'ItemsSteam' = required_data['steam_item']
         open_web_browser: bool = required_data['open_web_browser']
 
-        custom_status_code, response = self.__extract(
-            web_crawler,
-            open_web_browser,
-            game_market_id,
-            steam_item.df.loc[0, 'market_url_name'],  # this should change later to hide the df
-        )
-        if response.status_code != 200:
-            return
+        retries = 1
+        for i in range(retries+1):
+            custom_status_code, response = self.__extract(
+                web_crawler,
+                open_web_browser,
+                game_market_id,
+                steam_item.df.loc[0, 'market_url_name'],  # this should change later to hide the df
+            )
+            if response.status_code != 200:
+                return
+            page_cleaner = ItemMarketPageCleaner(response.content)
+            try:
+                steam_buy_order_id, quantity, price = page_cleaner.get_buy_order_info()
+                if not steam_buy_order_id:
+                    BuyOrders.handle_empty_from_market_page(steam_item.df.loc[0, 'id'], user_id)
+                    return
 
-        page_cleaner = ItemMarketPageCleaner(response.content)
-
-        steam_buy_order_id, quantity, price = page_cleaner.get_buy_order_info()
-
-        if not steam_buy_order_id:
-            BuyOrders.handle_empty_from_market_page(steam_item.df.loc[0, 'id'], user_id)
-            return
-
-        BuyOrders(
-            steam_buy_order_id=steam_buy_order_id, user_id=user_id, item_steam_id=steam_item.df.loc[0, 'id'],
-            active=True, price=price, qtd_current=quantity
-        ).save()
+                BuyOrders(
+                    steam_buy_order_id=steam_buy_order_id, user_id=user_id, item_steam_id=steam_item.df.loc[0, 'id'],
+                    active=True, price=price, qtd_current=quantity
+                ).save()
+                break
+            except Exception as error:
+                print(error)
+                continue
 
     @staticmethod
     def __extract(
