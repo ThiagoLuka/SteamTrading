@@ -21,3 +21,14 @@ class TradingCardsRepository:
             VALUES {values};
         """
         DBController.execute(query=query)
+
+    @staticmethod
+    def update_booster_packs_opened(game_id: int, times_opened: int, foil_quantity: int) -> None:
+        query = f"""
+            UPDATE item_booster_packs
+            SET
+                times_opened = times_opened + {times_opened},
+                foil_quantity = foil_quantity + {foil_quantity}
+            WHERE game_id = {game_id};
+        """
+        DBController.execute(query=query)

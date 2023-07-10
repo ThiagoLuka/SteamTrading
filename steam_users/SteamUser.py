@@ -52,11 +52,11 @@ class SteamUser:
     def update_inventory(self) -> None:
         UpdateInventory(self.__crawler, self.__user_id).full_update()
 
-    def open_booster_packs(self, game_name: str) -> None:
+    def open_booster_packs(self, n_of_games: int) -> None:
         OpenGameBoosterPacks().run(
             self.__crawler,
             user_id=self.__user_id,
-            game_name=game_name
+            n_of_games=n_of_games
         )
 
     def create_sell_listing(self, asset_id: str, price: int) -> None:

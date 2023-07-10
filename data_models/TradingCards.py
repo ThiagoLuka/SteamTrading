@@ -11,7 +11,7 @@ class TradingCards(
     },
     columns={
         'default': ('id', 'item_steam_id', 'game_id', 'set_number', 'foil'),
-        'item_booster_packs': ('id', 'item_steam_id', 'game_id', 'times_opened', 'foil_rate'),
+        'item_booster_packs': ('id', 'item_steam_id', 'game_id', 'times_opened', 'foil_quantity'),
         'item_trading_cards': ('id', 'item_steam_id', 'game_id', 'set_number', 'foil'),
     },
     repository=TradingCardsRepository
@@ -51,3 +51,9 @@ class TradingCards(
             columns = TradingCards._get_class_columns(table)
         data = TradingCardsRepository.get_all(table, columns)
         return TradingCards._from_db(table, data)
+
+    @staticmethod
+    def update_booster_packs_opened(game_id: int, times_opened: int,foil_quantity: int) -> None:
+        TradingCardsRepository.update_booster_packs_opened(
+            game_id=game_id, times_opened=times_opened,foil_quantity=foil_quantity
+        )

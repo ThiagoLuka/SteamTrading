@@ -96,3 +96,35 @@ class InventoryPageCleaner:
         asset_instances = [a['instanceid'] for a in self.__inventory['assets']]
         marketables = [instance_ids_to_marketable[instance] for instance in asset_instances]
         return marketables
+
+    def get_booster_packs_asset_ids(self, game_market_id: str) -> list[str]:
+        desc = self.__inventory['descriptions']
+        assets = self.__inventory['assets']
+        game_desc = [d for d in desc if str(d['market_fee_app']) == game_market_id]
+        bp_class_id: set[str] = {d['classid'] for d in game_desc if d['type'] == 'Booster Pack'}
+        bp_asset_ids = [asset['assetid'] for asset in assets if asset['classid'] in bp_class_id]
+        return bp_asset_ids
+
+    def get_cards_asset_ids_and_foil(self, game_market_id: str) -> dict:
+        desc = self.__inventory['descriptions']
+        assets = self.__inventory['assets']
+        game_desc = [d for d in desc if str(d['market_fee_app']) == game_market_id]
+
+        tcg_class_id_and_foil: dict = {
+            d['classid']: self.get_foil_from_item_description(d)
+            for d in game_desc if 'Trading Card' in d['type']
+        }
+        tcg_asset_ids_and_foil = {
+            asset['assetid']: tcg_class_id_and_foil[asset['classid']]
+            for asset in assets if asset['classid'] in tcg_class_id_and_foil.keys()
+        }
+        return tcg_asset_ids_and_foil
+
+    @staticmethod
+    def get_foil_from_item_description(description: dict) -> int:
+        tags = description['tags']
+        border_tag = [tag for tag in tags if tag['category'] == 'cardborder'][0]
+        raw_border = border_tag['internal_name']
+        border_foil = int(raw_border.replace('cardborder_', ''))
+        return border_foil
+

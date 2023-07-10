@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS item_booster_packs
 	,item_steam_id INT NOT NULL REFERENCES items_steam(id) ON DELETE CASCADE
 	,game_id INT NOT NULL REFERENCES games(id)
 	,times_opened INT NOT NULL DEFAULT 0
-	,foil_rate DOUBLE PRECISION NOT NULL DEFAULT 0
+	,foil_quantity INT NOT NULL DEFAULT 0
 	,CONSTRAINT unique_pack UNIQUE(game_id)
 );
 

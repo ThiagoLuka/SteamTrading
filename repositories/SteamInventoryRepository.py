@@ -28,17 +28,17 @@ class SteamInventoryRepository:
         return result[0][0]
 
     @staticmethod
-    def get_booster_pack_assets_id(user_id: int, game_name: str) -> list[tuple]:
-        game_name = QueryBuilderPG.sanitize_string(game_name)
+    def get_booster_pack_assets_id(user_id: int, game_id: int) -> list[tuple]:
         query = f"""
-            SELECT asset_id 
+            SELECT
+                asset_id,
+                isa.item_steam_id 
             FROM item_steam_assets isa 
             INNER JOIN items_steam is2 ON is2.id = isa.item_steam_id
             INNER JOIN item_steam_types ist ON ist.id = is2.item_steam_type_id
-            INNER JOIN games g ON g.id = is2.game_id
             WHERE
                 user_id = '{user_id}'
-                AND g."name" = '{game_name}'
+                AND is2.game_id = '{game_id}'
                 AND ist."name" = 'Booster Pack'
                 AND removed_at IS NULL;
         """
@@ -91,6 +91,22 @@ class SteamInventoryRepository:
                 AND ugt.user_id = table_a.user_id
             ORDER BY first_asset_timestamp
             LIMIT {n_of_games};
+        """
+        result = DBController.execute(query=query, get_result=True)
+        return result
+
+    @staticmethod
+    def get_game_ids_with_booster_packs(n_of_games: int, user_id: int):
+        query = f"""
+            SELECT DISTINCT(is2.game_id) 
+            FROM item_steam_assets isa 
+            INNER JOIN items_steam is2 ON isa.item_steam_id = is2.id 
+            INNER JOIN item_steam_types ist ON is2.item_steam_type_id = ist.id 
+            WHERE
+	            ist.name = 'Booster Pack'
+	            AND removed_at IS NULL
+	            AND user_id = {user_id}
+	        LIMIT {n_of_games};
         """
         result = DBController.execute(query=query, get_result=True)
         return result
