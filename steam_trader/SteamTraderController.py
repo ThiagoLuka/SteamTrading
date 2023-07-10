@@ -97,9 +97,8 @@ class SteamTraderController:
                         }))
 
     def open_booster_packs(self) -> None:
-        game_name = GenericUI.get_game_name()
-        self.__user.open_booster_packs(game_name)
-        self.__user.update_inventory()
+        n_of_games = SteamTraderUI.open_booster_packs()
+        self.__user.open_booster_packs(n_of_games)
 
     def sell_multiple_cards(self) -> None:
         n_games_to_update = SteamTraderUI.sell_cards_prompt_message()
@@ -107,7 +106,7 @@ class SteamTraderController:
         games = SteamGames.get_all_by_id(game_ids)
 
         for idx, game_data in enumerate(games):
-            game_items = ItemsSteam.get_booster_pack_and_cards_market_url(game_data['id'])
+            game_items = ItemsSteam.get_booster_pack_and_cards_market_url(game_data['id'], include_foil=True)
 
             item_name_with_asset_ids = SteamInventory.get_marketable_cards_asset_ids(self.__user_id, game_data['id'])
 
@@ -143,6 +142,8 @@ class SteamTraderController:
         SteamTraderUI.buy_orders_header(game_name)
         for steam_item in game_items:
             buy_order_filter = buy_orders.df['item_steam_id'] == steam_item.df.loc[0, 'id']
+            if True not in buy_order_filter.values:
+                continue
             buy_order_qtd = list(buy_orders.df.loc[buy_order_filter, 'qtd_current'].values)[0]
             buy_order_price = list(buy_orders.df.loc[buy_order_filter, 'price'].values)[0]
             item_name = steam_item.df.loc[0, 'name']

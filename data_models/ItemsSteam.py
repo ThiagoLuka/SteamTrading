@@ -141,7 +141,8 @@ class ItemsSteam(
         return ids
 
     @staticmethod
-    def get_booster_pack_and_cards_market_url(game_id: str, booster_pack_last: bool = False) -> 'ItemsSteam':
+    def get_booster_pack_and_cards_market_url(
+            game_id: str, booster_pack_last: bool = False, include_foil: bool = False) -> 'ItemsSteam':
         booster_pack = ItemsSteam._from_db(
             'items_steam',
             ItemsSteamRepository.get_booster_pack(
@@ -160,6 +161,15 @@ class ItemsSteam(
             items = cards + booster_pack
         else:
             items = booster_pack + cards
+        if include_foil:
+            foil = ItemsSteam._from_db(
+                'items_steam',
+                ItemsSteamRepository.get_foil_game_cards(
+                    ['items_steam.id as id', 'items_steam.game_id', 'item_steam_type_id', 'name', 'market_url_name'],
+                    game_id
+                )
+            )
+            items += foil
         return items
 
     @staticmethod

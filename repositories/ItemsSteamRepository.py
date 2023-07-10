@@ -119,6 +119,18 @@ class ItemsSteamRepository:
         return result
 
     @staticmethod
+    def get_foil_game_cards(columns: list, game_id: str) -> list[tuple]:
+        query = f"""
+            SELECT {', '.join(columns)}
+            FROM items_steam
+            WHERE
+	            game_id = {game_id}
+	            AND name LIKE '%Foil%';
+        """
+        result = DBController.execute(query=query, get_result=True)
+        return result
+
+    @staticmethod
     def upsert_multiple_items(items: zip, columns: list) -> None:
         values = QueryBuilderPG.unzip_to_query_values_str(items)
         query = f"""
