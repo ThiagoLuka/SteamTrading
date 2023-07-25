@@ -28,7 +28,7 @@ class UpdateInventory:
 
         inventory_cleaner: InventoryPageCleaner = self.__full_extraction()
         if inventory_cleaner.empty:
-            raise Exception
+            raise Exception('Inventory did not download correctly.')
 
         bps_in_inventory: list[str] = inventory_cleaner.get_booster_packs_asset_ids(game_market_id=game['market_id'])
         booster_packs_not_opened = [bp for bp in booster_pack_asset_ids if bp in bps_in_inventory]

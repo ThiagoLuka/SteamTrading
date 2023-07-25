@@ -46,7 +46,7 @@ class SteamTraderUI:
 
     @staticmethod
     def open_booster_packs() -> int:
-        return InputValidation.int_within_range(0, 50, 'How many games do you wish to open booster packs from?')
+        return InputValidation.int_within_range(0, 50, 'How many games do you wish to open booster packs from? ')
 
     @staticmethod
     def view_trading_cards_to_sell(cards: list) -> None:
