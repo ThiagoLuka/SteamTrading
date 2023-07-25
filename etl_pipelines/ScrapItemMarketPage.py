@@ -1,4 +1,5 @@
 import requests
+import time
 
 from web_crawlers.SteamWebCrawler import SteamWebCrawler
 from web_page_cleaning.ItemMarketPageCleaner import ItemMarketPageCleaner
@@ -14,7 +15,7 @@ class ScrapItemMarketPage:
         steam_item: 'ItemsSteam' = required_data['steam_item']
         open_web_browser: bool = required_data['open_web_browser']
 
-        retries = 1
+        retries = 4
         for i in range(retries+1):
             custom_status_code, response = self.__extract(
                 web_crawler,
@@ -37,7 +38,10 @@ class ScrapItemMarketPage:
                 ).save()
                 break
             except Exception as error:
-                print(error)
+                time.sleep(10)
+                if i == retries:
+                    raise error
+                print(steam_item.df.loc[0, 'name'], error)
                 continue
 
     @staticmethod
