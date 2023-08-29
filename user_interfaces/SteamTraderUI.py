@@ -60,7 +60,7 @@ class SteamTraderUI:
 
     @staticmethod
     def set_sell_price_for_item(item_name: str, item_number: int) -> int:
-        return InputValidation.int_within_range(0, 100, f' {item_number}-{item_name}: ')
+        return InputValidation.int_within_range(5, 100, f' {item_number}-{item_name}: ')
 
     @staticmethod
     def set_buy_order_for_item(item_name: str, item_number: int) -> tuple[int, int]:
