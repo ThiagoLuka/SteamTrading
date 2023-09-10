@@ -32,11 +32,13 @@ class SteamTraderController:
             if command == 2:
                 self.update_buy_orders()
             if command == 3:
-                self.create_buy_order()
+                self.create_buy_orders()
             if command == 4:
                 self.open_booster_packs()
             if command == 5:
-                self.sell_multiple_cards()
+                self.update_sell_listings()
+            if command == 6:
+                self.create_sell_listings()
 
             if command == 0:
                 self.__market_actions_queue.join()
@@ -65,7 +67,10 @@ class SteamTraderController:
                 )
                 time.sleep(10)
 
-    def create_buy_order(self) -> None:
+    def update_sell_listings(self) -> None:
+        self.__user.update_sell_listing()
+
+    def create_buy_orders(self) -> None:
         n_games_to_update = SteamTraderUI.create_buy_orders_prompt_message()
         game_ids: list[str] = BuyOrders.get_game_ids_to_be_updated(n_games_to_update, self.__user_id)
         games = SteamGames.get_all_by_id(game_ids)
@@ -100,7 +105,7 @@ class SteamTraderController:
         n_of_games = SteamTraderUI.open_booster_packs()
         self.__user.open_booster_packs(n_of_games)
 
-    def sell_multiple_cards(self) -> None:
+    def create_sell_listings(self) -> None:
         n_games_to_update = SteamTraderUI.sell_cards_prompt_message()
         game_ids = SteamInventory.get_game_ids_with_cards_to_be_sold(n_games_to_update, self.__user_id)
         games = SteamGames.get_all_by_id(game_ids)

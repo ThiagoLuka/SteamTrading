@@ -11,10 +11,11 @@ class SteamTraderUI:
             '2 - Update buy orders\n'
             '3 - Create new buy orders\n'
             '4 - Open booster packs\n'
-            '5 - Sell cards of a game\n'
+            '5 - Update sell listings\n'
+            '6 - Sell cards of a game\n'
             '0 - Back to main menu'
         )
-        return InputValidation.int_within_range(0, 5)
+        return InputValidation.int_within_range(0, 6)
 
     @staticmethod
     def overview_marketable_cards(data: dict, inv_total_size: int) -> None:
