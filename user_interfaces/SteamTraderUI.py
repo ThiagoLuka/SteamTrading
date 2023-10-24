@@ -71,7 +71,7 @@ class SteamTraderUI:
     def set_buy_order_for_item(item_name: str, item_number: int) -> tuple[int, int]:
         print(f' {item_number} - {item_name} ')
         price = InputValidation.int_within_range(0, 150, f' Price: ')
-        qtd = InputValidation.int_within_range(0, 200, f' Quantity: ')
+        qtd = InputValidation.int_within_range(50, 200, f' Quantity: ')
         return price, qtd
 
     @staticmethod
