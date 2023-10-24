@@ -6,7 +6,7 @@ from web_page_cleaning.SellListingPageCleaner import SellListingPageCleaner
 from etl_data_models.SellListing import SellListing
 
 
-class ScrapSellListing:
+class ScrapMarketMainPage:
 
     def __init__(self, web_crawler: SteamWebCrawler, user_id: int):
         self.__crawler = web_crawler
@@ -14,7 +14,7 @@ class ScrapSellListing:
         self.__items_per_page = 100
         self.__extraction_progress_counter = 0
 
-    def run(self, **required_data):
+    def get_sell_listings(self):
 
         listings_cleaner = self.__full_extraction()
 

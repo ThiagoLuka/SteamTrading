@@ -3,7 +3,7 @@ from etl_pipelines.UpdateFullInventory import UpdateInventory
 from etl_pipelines.GetTradingCardsOfNewGames import GetTradingCardsOfNewGames
 from etl_pipelines.OpenGameBoosterPacks import OpenGameBoosterPacks
 from etl_pipelines.ScrapItemMarketPage import ScrapItemMarketPage
-from etl_pipelines.ScrapSellListing import ScrapSellListing
+from etl_pipelines.ScrapMarketMainPage import ScrapMarketMainPage
 from web_crawlers import SteamWebCrawler
 from data_models.ItemsSteam import ItemsSteam
 from data_models.SteamBadges import SteamBadges
@@ -71,10 +71,10 @@ class SteamUser:
             return
 
     def update_sell_listing(self) -> None:
-        ScrapSellListing(
+        ScrapMarketMainPage(
             self.__crawler,
             self.__user_id,
-        ).run()
+        ).get_sell_listings()
 
     def create_buy_order(self, item_url_name: str, price: int, qtd: int, game_market_id: int) -> dict:
         status, result = self.__crawler.interact(
