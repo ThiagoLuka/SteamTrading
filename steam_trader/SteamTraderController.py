@@ -71,7 +71,10 @@ class SteamTraderController:
         self.__user.update_sell_listing()
 
     def create_buy_orders(self) -> None:
-        n_games_to_update = SteamTraderUI.create_buy_orders_prompt_message()
+        if SteamTraderUI.create_first_buy_order_of_game():
+            self.__create_first_buy_orders(GenericUI.get_game_id())
+            return
+        n_games_to_update = SteamTraderUI.how_many_games_buy_orders()
         game_ids: list[str] = BuyOrders.get_game_ids_to_be_updated(n_games_to_update, self.__user_id)
         games = SteamGames.get_all_by_id(game_ids)
 
@@ -100,6 +103,27 @@ class SteamTraderController:
                             'qtd': qtd,
                             'game_market_id': game_data['market_id']
                         }))
+
+    def __create_first_buy_orders(self, game_id: str):
+        game = SteamGames.get_all_by_id([game_id])
+        for game_data in game:
+            game_items = ItemsSteam.get_booster_pack_and_cards_market_url(game_data['id'], booster_pack_last=True)
+            for idx2, steam_item in enumerate(game_items):
+                item_id = steam_item.df.loc[0, 'id']
+                item_name = steam_item.df.loc[0, 'name']
+                item_url_name = steam_item.df.loc[0, 'market_url_name']
+                self.__open_item_market_page_in_browser(steam_item, game_data['market_id'])
+                price, qtd = SteamTraderUI.set_buy_order_for_item(item_name, idx2 + 1)
+                if not price or not qtd:
+                    continue
+                self.__market_actions_queue.put((
+                    'create_buy_order', {
+                        'item_id': item_id,
+                        'item_url_name': item_url_name,
+                        'price': price,
+                        'qtd': qtd,
+                        'game_market_id': game_data['market_id']
+                    }))
 
     def open_booster_packs(self) -> None:
         n_of_games = SteamTraderUI.open_booster_packs()

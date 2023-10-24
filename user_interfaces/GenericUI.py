@@ -25,6 +25,11 @@ class GenericUI:
         return GenericUI.get_string('Game name: ')
 
     @staticmethod
+    def get_game_id() -> str:
+        # add game_id validation
+        return GenericUI.get_string('Game id: ')
+
+    @staticmethod
     def progress_completed(progress: int, total: int, text: str = '') -> None:
         percentage_progress = progress / total
         end = ''

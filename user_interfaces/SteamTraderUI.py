@@ -38,7 +38,11 @@ class SteamTraderUI:
         return InputValidation.int_within_range(0, 100, 'How many games do you wish to update? ')
 
     @staticmethod
-    def create_buy_orders_prompt_message() -> int:
+    def create_first_buy_order_of_game() -> bool:
+        return InputValidation.yes_or_no('First buy order of the game?')
+
+    @staticmethod
+    def how_many_games_buy_orders() -> int:
         return InputValidation.int_within_range(0, 100, 'For how many games do you wish to create new buy orders? ')
 
     @staticmethod
