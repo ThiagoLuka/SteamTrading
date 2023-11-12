@@ -2,10 +2,9 @@ from etl_pipelines.ScrapProfileBadgesPage import ScrapProfileBadgesPage
 from etl_pipelines.UpdateFullInventory import UpdateInventory
 from etl_pipelines.GetTradingCardsOfNewGames import GetTradingCardsOfNewGames
 from etl_pipelines.OpenGameBoosterPacks import OpenGameBoosterPacks
-from etl_pipelines.ScrapItemMarketPage import ScrapItemMarketPage
 from etl_pipelines.ScrapMarketMainPage import ScrapMarketMainPage
+from etl_pipelines.ScrapMarketItemPage import ScrapMarketItemPage
 from web_crawlers import SteamWebCrawler
-from data_models.ItemsSteam import ItemsSteam
 from data_models.SteamBadges import SteamBadges
 from repositories.SteamUserRepository import SteamUserRepository
 
@@ -86,10 +85,21 @@ class SteamUser:
         )
         return result.json()
 
-    def update_buy_order(self, game_market_id: str, steam_item: ItemsSteam, open_web_browser: bool):
-        ScrapItemMarketPage().run(
+    def update_game_buy_orders(self, game_name: str, game_market_id: str, items: list[dict]):
+        ScrapMarketItemPage(
             self.__crawler,
-            user_id=self.__user_id,
+            self.__user_id,
+            game_info={
+                'name': game_name,
+                'market_id': game_market_id,
+            },
+            items=items
+        ).get_game_buy_orders()
+
+    def open_market_item_page_in_browser(self, game_market_id: str, item_market_url_name: str):
+        self.__crawler.interact(
+            'item_market_page',
+            open_web_browser=True,
             game_market_id=game_market_id,
             steam_item=steam_item,
             open_web_browser=open_web_browser,

@@ -4,6 +4,7 @@ from queue import Queue, Empty
 
 from user_interfaces.GenericUI import GenericUI
 from user_interfaces.SteamTraderUI import SteamTraderUI
+from etl_data_models.BuyOrder import BuyOrder
 from steam_users.SteamUser import SteamUser
 from data_models.SteamGames import SteamGames
 from data_models.ItemsSteam import ItemsSteam
@@ -53,19 +54,18 @@ class SteamTraderController:
 
     def update_buy_orders(self) -> None:
         n_games_to_update = SteamTraderUI.update_buy_orders_prompt_message()
-        game_ids: list[str] = BuyOrders.get_game_ids_with_most_outdated_orders(n_games_to_update, self.__user_id)
-        games = SteamGames.get_all_by_id(game_ids)
-
-        for idx, game_data in enumerate(games):
-            print(f"{idx + 1} - {game_data['name']}")
-            game_items = ItemsSteam.get_booster_pack_and_cards_market_url(game_data['id'], booster_pack_last=True)
-            for steam_item in game_items:
-                self.__user.update_buy_order(
-                    game_market_id=game_data['market_id'],
-                    steam_item=steam_item,
-                    open_web_browser=False
-                )
-                time.sleep(10)
+        while n_games_to_update > 0:
+            n_games_to_update -= 1
+            game_id: list[str] = BuyOrders.get_game_ids_with_most_outdated_orders(1, self.__user_id)
+            game = SteamGames.get_all_by_id(game_id)
+            items = ItemsSteam.get_booster_pack_and_cards_market_url(game.id, booster_pack_last=True)
+            items_raw = [{
+                'id': item.df.loc[0, 'id'],
+                'name': item.df.loc[0, 'name'],
+                'market_url_name': item.df.loc[0, 'market_url_name'],
+            } for item in items]
+            self.__user.update_game_buy_orders(game_name=game.name, game_market_id=game.market_id, items=items_raw)
+            time.sleep(10)
 
     def update_sell_listings(self) -> None:
         self.__user.update_sell_listing()
@@ -159,10 +159,9 @@ class SteamTraderController:
                         }))
 
     def __open_item_market_page_in_browser(self, steam_item: ItemsSteam, game_market_id: str) -> None:
-        self.__user.update_buy_order(
+        self.__user.open_market_item_page_in_browser(
             game_market_id=game_market_id,
-            steam_item=steam_item,
-            open_web_browser=True
+            item_market_url_name=steam_item.df.loc[0, 'market_url_name'],
         )
         time.sleep(0.5)
 
@@ -223,11 +222,18 @@ class SteamTraderController:
         price = kwargs['price']
         qtd = kwargs['qtd']
         game_market_id = kwargs['game_market_id']
-        response_content = self.__user.create_buy_order(item_url_name, price, qtd, game_market_id)
+        response_content = self.__user.create_buy_order(
+            item_url_name=item_url_name,
+            price=price,
+            qtd=qtd,
+            game_market_id=game_market_id,
+        )
         if response_content['success'] == 1:
-            BuyOrders(
-                steam_buy_order_id=response_content['buy_orderid'], user_id=self.__user_id,
-                item_steam_id=item_id, active=True, price=price, qtd_current=qtd
-            ).save()
+            BuyOrder([{
+                'item_id': item_id,
+                'steam_buy_order_id': response_content['buy_orderid'],
+                'quantity': qtd,
+                'price': price,
+            }]).save(user_id=self.__user_id)
         else:
             SteamTraderUI.create_buy_order_failed()

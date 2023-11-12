@@ -1,7 +1,7 @@
 import requests
 
 from web_crawlers import SteamWebCrawler
-from web_page_cleaning.ItemMarketPageCleaner import ItemMarketPageCleaner
+from web_page_cleaning.MarketItemPageCleaner import MarketItemPageCleaner
 
 
 class CheckItemMarketUrlName:
@@ -61,5 +61,5 @@ class CheckItemMarketUrlName:
             game_market_id=game_market_id,
             item_url_name=item_url_name,
         )
-        page_cleaner = ItemMarketPageCleaner(response.content)
+        page_cleaner = MarketItemPageCleaner(response.content)
         return page_cleaner.item_url_is_valid()

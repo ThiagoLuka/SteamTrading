@@ -1,6 +1,3 @@
-from datetime import datetime
-
-from repositories.QueryBuilderPG import QueryBuilderPG
 from db.DBController import DBController
 
 
@@ -82,49 +79,3 @@ class BuyOrdersRepository:
         """
         result = DBController.execute(query=query, get_result=True)
         return result
-
-    @staticmethod
-    def insert_multiple_buy_orders(buy_orders: zip, columns: list) -> None:
-        values = QueryBuilderPG.unzip_to_query_values_str(buy_orders)
-        query = f"""
-            INSERT INTO buy_orders ({', '.join(columns)})
-            VALUES {values};
-        """
-        DBController.execute(query=query)
-
-    @staticmethod
-    def update_buy_order(buy_order_id: int, steam_buy_order_id: str, qtd: int) -> None:
-        update_time = datetime.now()
-        query = f"""
-            UPDATE buy_orders
-            SET
-                steam_buy_order_id = {steam_buy_order_id}
-                , qtd_estimate = {qtd}
-                , qtd_current = {qtd}
-                , updated_at = '{update_time}'
-            WHERE buy_orders.buy_order_id = {buy_order_id};
-        """
-        DBController.execute(query=query)
-
-    @staticmethod
-    def set_last_buy_order_to_inactive(steam_item_id: int, user_id: int) -> None:
-        update_time = datetime.now()
-        query = f"""
-            WITH to_update_id AS (
-                SELECT buy_order_id FROM buy_orders
-                WHERE
-                    item_steam_id = '{steam_item_id}'
-                    AND user_id = {user_id}
-                ORDER BY RANK() OVER (PARTITION BY item_steam_id ORDER BY created_at DESC)
-                LIMIT 1
-            )
-            UPDATE buy_orders
-            SET
-                active = False
-                , qtd_estimate = 0
-                , qtd_current = 0
-                , updated_at = '{update_time}'
-                , removed_at = '{update_time}'
-            WHERE buy_orders.buy_order_id = (SELECT * FROM to_update_id);
-        """
-        DBController.execute(query=query)

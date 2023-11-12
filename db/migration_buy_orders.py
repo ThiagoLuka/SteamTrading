@@ -29,8 +29,8 @@ import pandas as pd
 from data_models.SteamGames import SteamGames
 from data_models.ItemsSteam import ItemsSteam
 from data_models.PandasUtils import PandasUtils
-from repositories.BuyOrdersRepository import BuyOrdersRepository
-
+from repositories.QueryBuilderPG import QueryBuilderPG
+from db.DBController import DBController
 
 def data_extraction() -> dict:
     with open('db/buy_orders.json', encoding='utf-8') as file:
@@ -161,7 +161,12 @@ def transform(data_df: pd.DataFrame) -> pd.DataFrame:
 
 def data_load(data_df: pd.DataFrame, columns: list) -> None:
     zipped_data = PandasUtils.zip_df_columns(data_df, columns)
-    BuyOrdersRepository.insert_multiple_buy_orders(zipped_data, columns)
+    values = QueryBuilderPG.unzip_to_query_values_str(zipped_data)
+    query = f"""
+        INSERT INTO buy_orders ({', '.join(columns)})
+        VALUES {values};
+    """
+    DBController.execute(query=query)
 
 
 if __name__ == '__main__':
