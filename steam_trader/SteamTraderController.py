@@ -4,7 +4,7 @@ from queue import Queue, Empty
 
 from user_interfaces.GenericUI import GenericUI
 from user_interfaces.SteamTraderUI import SteamTraderUI
-from etl_data_models.BuyOrder import BuyOrder
+from data_models import PersistToDB
 from steam_users.SteamUser import SteamUser
 from data_models.SteamGames import SteamGames
 from data_models.ItemsSteam import ItemsSteam
@@ -229,11 +229,15 @@ class SteamTraderController:
             game_market_id=game_market_id,
         )
         if response_content['success'] == 1:
-            BuyOrder([{
-                'item_id': item_id,
-                'steam_buy_order_id': response_content['buy_orderid'],
-                'quantity': qtd,
-                'price': price,
-            }]).save(user_id=self.__user_id)
+            PersistToDB.persist(
+                'buy_order',
+                [{
+                    'item_id': item_id,
+                    'steam_buy_order_id': response_content['buy_orderid'],
+                    'quantity': qtd,
+                    'price': price,
+                }],
+                user_id=self.__user_id
+            )
         else:
             SteamTraderUI.create_buy_order_failed()

@@ -101,8 +101,7 @@ class SteamUser:
             'item_market_page',
             open_web_browser=True,
             game_market_id=game_market_id,
-            steam_item=steam_item,
-            open_web_browser=open_web_browser,
+            item_url_name=item_market_url_name,
         )
 
     def __save_user(self) -> int:

@@ -3,7 +3,7 @@ import requests
 from user_interfaces.GenericUI import GenericUI
 from web_crawlers.SteamWebCrawler import SteamWebCrawler
 from web_page_cleaning.SellListingPageCleaner import SellListingPageCleaner
-from etl_data_models.SellListing import SellListing
+from data_models import PersistToDB
 
 
 class ScrapMarketMainPage:
@@ -20,9 +20,11 @@ class ScrapMarketMainPage:
 
         cleaned_data = listings_cleaner.clean()
 
-        sell_listings = SellListing(cleaned_data)
-
-        sell_listings.save(self.__user_id)
+        PersistToDB.persist(
+            'sell_listing',
+            cleaned_data,
+            self.__user_id,
+        )
 
     def __full_extraction(self) -> SellListingPageCleaner:
         progress_text = 'Downloading every sell listing'

@@ -4,7 +4,7 @@ import time
 from user_interfaces.GenericUI import GenericUI
 from web_crawlers.SteamWebCrawler import SteamWebCrawler
 from web_page_cleaning.MarketItemPageCleaner import MarketItemPageCleaner
-from etl_data_models.BuyOrder import BuyOrder
+from data_models import PersistToDB
 
 
 class ScrapMarketItemPage:
@@ -28,7 +28,12 @@ class ScrapMarketItemPage:
                     cleaned_data = market_item_page_cleaner.get_buy_order()
                     empty_buy_order = not any(cleaned_data.values())
                     cleaned_data['item_id'] = item['id']
-                    BuyOrder([cleaned_data]).save(user_id=self.__user_id, empty_buy_order=empty_buy_order)
+                    PersistToDB.persist(
+                        'buy_order',
+                        [cleaned_data],
+                        user_id=self.__user_id,
+                        empty_buy_order=empty_buy_order
+                    )
                     GenericUI.progress_completed(progress=index+1,total=len(self.__items), text=progress_text)
                     break
                 except Exception as error:
