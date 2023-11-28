@@ -23,6 +23,7 @@ class ScrapMarketItemPage:
         for index, item in enumerate(self.__items):
             retries_left = self.__retries
             while True:
+                time.sleep(5)  # avoiding too many requests
                 try:
                     market_item_page_cleaner = self.__full_extraction(market_url_name=item['market_url_name'])
                     cleaned_data = market_item_page_cleaner.get_buy_order()
@@ -40,7 +41,6 @@ class ScrapMarketItemPage:
                     retries_left -= 1
                     print(f"\n{error}: {item['name']}")
                     GenericUI.progress_completed(progress=index+1, total=len(self.__items), text=progress_text)
-                    time.sleep(5)
                     if not retries_left:
                         raise error
 
