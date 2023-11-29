@@ -7,12 +7,12 @@ from db.DBController import DBController
 
 class BasePersistenceModel:
 
-    model_names: dict = {}
+    models: dict = {}
 
     def __init_subclass__(cls, **kwargs):
-        BasePersistenceModel.model_names.update({kwargs['name']: cls})
+        BasePersistenceModel.models.update({kwargs['name']: cls})
 
-    def __init__(self, data: list[dict]):
+    def __init__(self, data: list[dict] = None):
         self._df = pd.DataFrame(data)
 
     @property
@@ -20,6 +20,14 @@ class BasePersistenceModel:
         return self._df.copy()
 
     def save(self, *args, **kwargs) -> None:
+        pass
+
+    @staticmethod
+    def table_name(table_type: str) -> str:
+        pass
+
+    @staticmethod
+    def table_columns(table_type: str) -> list:
         pass
 
     @staticmethod

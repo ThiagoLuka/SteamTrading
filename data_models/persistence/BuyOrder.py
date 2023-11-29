@@ -5,25 +5,26 @@ class BuyOrder(BasePersistenceModel, name='buy_order'):
 
     def save(self, user_id: int, empty_buy_order: bool = False) -> None:
         self._df['user_id'] = user_id
-        self._db_execute(query=self._insert_into_staging_query(self._df, self._staging_table_name))
+        self._db_execute(query=self._insert_into_staging_query(self._df, self.table_name(table_type='staging')))
         self._transfer_staging_to_public(empty_buy_order=empty_buy_order)
 
-    @property
-    def _staging_table_name(self) -> str:
-        return 'staging.buy_order'
+    @staticmethod
+    def table_name(table_type: str) -> str:
+        return {
+            'public': 'public.buy_orders',
+            'staging': 'staging.buy_order',
+        }.get(table_type, '')
 
-    @property
-    def _staging_table_columns(self) -> list:
-        return ['steam_buy_order_id', 'item_id', 'user_id', 'price', 'quantity']
+    @staticmethod
+    def table_columns(table_type: str) -> list:
+        return {
+            'public': [
+                'buy_order_id', 'steam_buy_order_id', 'user_id', 'item_steam_id', 'active', 'price',
+                'qtd_start', 'qtd_estimate', 'qtd_current', 'created_at', 'updated_at', 'removed_at'
+            ],
+            'staging': ['steam_buy_order_id', 'item_id', 'user_id', 'price', 'quantity'],
+        }.get(table_type, [])
 
-    @property
-    def _public_table_name(self) -> str:
-        return 'public.buy_orders'
-
-    @property
-    def _public_table_columns(self) -> list:
-        return ['buy_order_id', 'steam_buy_order_id', 'user_id', 'item_steam_id', 'active', 'price',
-                'qtd_start', 'qtd_estimate', 'qtd_current', 'created_at', 'updated_at', 'removed_at']
     def _transfer_staging_to_public(self, empty_buy_order: bool) -> None:
         if empty_buy_order:
             query = self._empty_buy_order_query()
@@ -32,8 +33,8 @@ class BuyOrder(BasePersistenceModel, name='buy_order'):
         self._db_execute(query=query)
 
     def _empty_buy_order_query(self) -> str:
-        public = self._public_table_name
-        staging = self._staging_table_name
+        public = self.table_name(table_type='public')
+        staging = self.table_name(table_type='staging')
         return f"""
             BEGIN TRANSACTION;
             
@@ -60,8 +61,8 @@ class BuyOrder(BasePersistenceModel, name='buy_order'):
         """
 
     def _upsert_buy_order_query(self) -> str:
-        public = self._public_table_name
-        staging = self._staging_table_name
+        public = self.table_name(table_type='public')
+        staging = self.table_name(table_type='staging')
         return f"""
             BEGIN TRANSACTION;
             
