@@ -5,7 +5,7 @@ class BuyOrder(BasePersistenceModel, name='buy_order'):
 
     def save(self, user_id: int, empty_buy_order: bool = False) -> None:
         self._df['user_id'] = user_id
-        self._db_execute(query=self._insert_into_staging_query(self._df, self.table_name(table_type='staging')))
+        self._insert_into_staging(df=self._df, staging_table_name=self.table_name(table_type='staging'))
         self._transfer_staging_to_public(empty_buy_order=empty_buy_order)
 
     @staticmethod

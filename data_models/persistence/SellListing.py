@@ -6,7 +6,7 @@ class SellListing(BasePersistenceModel, name='sell_listing'):
     def save(self, user_id: int) -> None:
         self._df['user_id'] = user_id
         self._df.drop_duplicates(subset='steam_sell_listing_id', inplace=True)
-        self._db_execute(query=self._insert_into_staging_query(self._df, self.table_name(table_type='staging')))
+        self._insert_into_staging(df=self._df, staging_table_name=self.table_name(table_type='staging'))
         self._transfer_staging_to_public()
 
     @staticmethod

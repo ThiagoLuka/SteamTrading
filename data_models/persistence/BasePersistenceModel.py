@@ -34,13 +34,12 @@ class BasePersistenceModel:
     def _db_execute(query: str) -> None:
         return DBController.execute(query=query)
 
-    @staticmethod
-    def _insert_into_staging_query(df, staging_table_name) -> str:
+    def _insert_into_staging(self, df, staging_table_name) -> None:
         cols_to_insert = list(df.columns)
         zipped_data = PandasUtils.zip_df_columns(df, cols_to_insert)
         values = QueryBuilderPG.unzip_to_query_values_str(zipped_data)
-        return f"""
+        self._db_execute(f"""
             INSERT INTO {staging_table_name}
             ({', '.join(cols_to_insert)})
             VALUES {values};
-        """
+        """)
