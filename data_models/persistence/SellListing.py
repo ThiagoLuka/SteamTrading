@@ -33,9 +33,10 @@ class SellListing(BasePersistenceModel, name='sell_listing'):
         query = self._upsert_sell_listings_query()
         self._db_execute(query=query)
 
-    def _upsert_sell_listings_query(self):
+    def _upsert_sell_listings_query(self) -> str:
         public = self.table_name(table_type='public')
         staging = self.table_name(table_type='staging')
+        inventory_table_name = self.models['steam_asset'].table_name(table_type='public')
         return f"""
             BEGIN TRANSACTION;
             
@@ -86,7 +87,7 @@ class SellListing(BasePersistenceModel, name='sell_listing'):
 	            ssl.created_at,
 	            NULL AS removed_at
             FROM {staging} ssl
-            LEFT JOIN public.item_steam_assets isa ON isa.asset_id = ssl.steam_asset_id
+            LEFT JOIN {inventory_table_name} isa ON isa.asset_id = ssl.steam_asset_id
             ON CONFLICT (steam_sell_listing_id)
             DO UPDATE
             SET

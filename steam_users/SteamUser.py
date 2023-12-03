@@ -1,5 +1,5 @@
 from etl_pipelines.ScrapProfileBadgesPage import ScrapProfileBadgesPage
-from etl_pipelines.UpdateFullInventory import UpdateInventory
+from etl_pipelines.ScrapInventory import ScrapInventory
 from etl_pipelines.GetTradingCardsOfNewGames import GetTradingCardsOfNewGames
 from etl_pipelines.OpenGameBoosterPacks import OpenGameBoosterPacks
 from etl_pipelines.ScrapMarketMainPage import ScrapMarketMainPage
@@ -50,7 +50,7 @@ class SteamUser:
         GetTradingCardsOfNewGames(self.__crawler).run()
 
     def update_inventory(self) -> None:
-        UpdateInventory(self.__crawler, self.__user_id).full_update()
+        ScrapInventory(self.__crawler, self.__user_id).full_update()
 
     def open_booster_packs(self, n_of_games: int) -> None:
         OpenGameBoosterPacks().run(

@@ -40,62 +40,89 @@ class InventoryPageCleaner:
     def last_assetid(self) -> str:
         return self.__inventory['last_assetid']
 
-    def get_games_with_market_id(self) -> set[tuple[str, str]]:
-        def get_game_name_in_description(description: dict) -> str:
-            for tag in description['tags']:
-                if tag['category'] == 'Game':
-                    return tag['localized_tag_name']
-        return {
-            (
-                get_game_name_in_description(description),
-                str(description['market_fee_app']),
-            )
-            for description
-            in self.__inventory['descriptions']
-        }
+    def get_game_info(self) -> list[dict]:
+        game_info = []
+        for description in self.__inventory['descriptions']:
+            game_info.append({
+                'name': self._get_game_name(description),
+                'market_id': self._get_game_market_id(description),
+            })
+        return game_info
 
-    def get_game_market_ids_for_descripts(self) -> list[int]:
-        # return [d['market_fee_app'] for d in descripts_raw]
-        # market_fee_app was my first choice to get market_ids,
-        # but it's not as reliable as market_hash_name, not sure why
-        return [int(d['market_hash_name'].split('-')[0]) for d in self.__inventory['descriptions']]
+    def get_steam_item_info(self) -> list[dict]:
+        steam_item_info = []
+        for description in self.__inventory['descriptions']:
+            steam_item_type_id, steam_item_type_name = self._get_item_type_id_and_name(description)
+            steam_item_info.append({
+                'game_market_id': self._get_game_market_id(description),
+                'market_url_name': self._get_item_market_url_name(description),
+                'name': self._get_item_name(description),
+                'steam_item_type_id': steam_item_type_id,
+                'steam_item_type_name': steam_item_type_name,
+                'class_id': self._get_class_id(description),
+            })
+        return steam_item_info
 
-    def get_class_ids(self, item_type: str) -> list[str]:
-        return [item['classid'] for item in self.__inventory[item_type]]
+    def get_asset_info(self) -> list[dict]:
+        steam_asset_info = []
+        for asset in self.__inventory['assets']:
+            steam_asset_info.append({
+                'class_id': self._get_class_id(asset),
+                'asset_id': self._get_asset_id(asset),
+                'marketable': self._get_marketable(
+                    descriptions=self.__inventory['descriptions'],
+                    instance_id=self._get_instance_id(asset),
+                    class_id=self._get_class_id(asset),
+                )
+            })
+        return steam_asset_info
 
-    def get_item_types_with_item_names(self) -> list[tuple[str, str]]:
-        def get_item_type_id_and_name_from_tag(description: dict) -> tuple:
-            for tag in description['tags']:
-                if tag['category'] == 'item_class':
-                    return tag['internal_name'].replace('item_class_', ''), tag['localized_tag_name']
-        return [
-            get_item_type_id_and_name_from_tag(description)
-            for description
-            in self.__inventory['descriptions']
-        ]
+    @staticmethod
+    def _get_game_name(description: dict) -> str:
+        for tag in description['tags']:
+            if tag['category'] == 'Game':
+                return tag['localized_tag_name']
 
-    def get_descript_names(self) -> list[str]:
-        return [d['name'] for d in self.__inventory['descriptions']]
+    @staticmethod
+    def _get_game_market_id(description: dict) -> str:
+        return str(description['market_fee_app'])
 
-    def get_item_url_names(self) -> list[str]:
-        # just like market_fee_app, market_name is not as reliable as market_hash_name
-        # url_names = [requests.utils.quote(d['market_name']) for d in descripts_raw]
-        def get_url_name_from_market_hash(market_hash_name):
-            hash_splitted = market_hash_name.split('-')
-            hash_splitted.pop(0)
-            url_name_raw = '-'.join(hash_splitted)
-            url_name = requests.utils.quote(url_name_raw)
-            return url_name
-        return [get_url_name_from_market_hash(d['market_hash_name']) for d in self.__inventory['descriptions']]
+    @staticmethod
+    def _get_item_market_url_name(description: dict) -> str:
+        market_hash_name = description['market_hash_name']
+        hash_splitted = market_hash_name.split('-')
+        hash_splitted.pop(0)
+        url_name_raw = '-'.join(hash_splitted)
+        url_name = requests.utils.quote(url_name_raw)
+        return url_name
 
-    def get_asset_ids(self) -> list[str]:
-        return [a['assetid'] for a in self.__inventory['assets']]
+    @staticmethod
+    def _get_item_name(description: dict) -> str:
+        return description['name']
 
-    def get_asset_marketable_info(self) -> list[int]:
-        instance_ids_to_marketable: dict = {d['instanceid']: d['marketable'] for d in self.__inventory['descriptions']}
-        asset_instances = [a['instanceid'] for a in self.__inventory['assets']]
-        marketables = [instance_ids_to_marketable[instance] for instance in asset_instances]
-        return marketables
+    @staticmethod
+    def _get_class_id(item: dict) -> str:
+        return item['classid']
+
+    @staticmethod
+    def _get_item_type_id_and_name(description: dict) -> tuple[int, str]:
+        for tag in description['tags']:
+            if tag['category'] == 'item_class':
+                return int(tag['internal_name'].replace('item_class_', '')), tag['localized_tag_name']
+
+    @staticmethod
+    def _get_asset_id(asset: dict) -> str:
+        return asset['assetid']
+
+    @staticmethod
+    def _get_instance_id(asset: dict) -> str:
+        return asset['instanceid']
+
+    @staticmethod
+    def _get_marketable(descriptions: list, instance_id: str, class_id: str) -> int:
+        for d in descriptions:
+            if d['instanceid'] == instance_id and d['classid'] == class_id:
+                return d['marketable']
 
     def get_booster_packs_asset_ids(self, game_market_id: str) -> list[str]:
         desc = self.__inventory['descriptions']

@@ -1,4 +1,7 @@
 
+--DROP TABLE IF EXISTS staging.steam_asset;
+--DROP TABLE IF EXISTS staging.steam_item;
+--DROP TABLE IF EXISTS staging.game;
 --DROP TABLE IF EXISTS staging.buy_order;
 --DROP SCHEMA staging;
 
@@ -13,3 +16,33 @@ CREATE TABLE IF NOT EXISTS staging.buy_order
 	, price INT
 	, quantity INT
    );
+
+
+CREATE TABLE IF NOT EXISTS staging.game
+  (
+	  name TEXT
+	, market_id TEXT
+	, has_trading_cards BOOL
+   );
+
+
+CREATE TABLE IF NOT EXISTS staging.steam_item
+  (
+	  game_market_id TEXT
+	, market_url_name TEXT
+	, name TEXT
+	, steam_item_type_id INT
+	, steam_item_type_name TEXT
+	, class_id TEXT
+   );
+
+
+CREATE TABLE IF NOT EXISTS staging.steam_asset
+  (
+	  class_id TEXT
+	, user_id INT
+	, asset_id TEXT
+	, marketable BOOL
+	, created_at TIMESTAMP DEFAULT NOW()::TIMESTAMP
+   );
+

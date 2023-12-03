@@ -2,7 +2,7 @@ import requests
 from typing import Union
 
 from user_interfaces.GenericUI import GenericUI
-from etl_pipelines.UpdateFullInventory import UpdateInventory
+from etl_pipelines.ScrapInventory import ScrapInventory
 from web_crawlers import SteamWebCrawler
 from data_models.SteamInventory import SteamInventory
 from data_models.SteamGames import SteamGames
@@ -14,7 +14,7 @@ class OpenGameBoosterPacks:
         user_id: int = required_data['user_id']
         n_of_games: int = required_data['n_of_games']
 
-        update_inventory_task = UpdateInventory(web_crawler, user_id)
+        update_inventory_task = ScrapInventory(web_crawler, user_id)
         update_inventory_task.full_update()
 
         game_ids = SteamInventory.get_game_ids_with_booster_packs_to_be_opened(n_of_games=n_of_games, user_id=user_id)
