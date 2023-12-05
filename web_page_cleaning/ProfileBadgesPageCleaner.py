@@ -16,12 +16,43 @@ class ProfileBadgesPageCleaner:
 
     def get_number_of_pages(self) -> int:
         if not self.__page.find_class('profile_paging'):
-            return 1  # the current one
-        divs_with_link_to_next_page: list[html.HtmlElement] = self.__page.find_class('pagelink')
+            return 1
         # there are two paging elements in this webpage
         # so the number of divs with a link to other pages is duplicated
+        divs_with_link_to_next_page: list[html.HtmlElement] = self.__page.find_class('pagelink')
         number_of_pages: int = 1 + int(len(divs_with_link_to_next_page)/2)
         return number_of_pages
+
+    def get_games_info(self) -> list[dict]:
+        game_info = []
+        for raw_badge in self.__raw_badges:
+            raw_badge_cleaner = self.BadgeCleaner(raw_badge)
+            if not raw_badge_cleaner.is_game_badge():
+                continue
+            game_info.append({
+                'name': raw_badge_cleaner.get_game_name(),
+                'market_id': raw_badge_cleaner.get_market_id(),
+            })
+        return game_info
+
+    def get_badges_info(self) -> list[dict]:
+        badge_info = []
+        for raw_badge in self.__raw_badges:
+            raw_badge_cleaner = self.BadgeCleaner(raw_badge)
+            if not (raw_badge_cleaner.is_completed() and raw_badge_cleaner.have_info()):
+                continue
+            level, xp = raw_badge_cleaner.get_level_and_xp()
+            badge_info.append({
+                'name': raw_badge_cleaner.get_badge_name(),
+                'level': level,
+                'foil': raw_badge_cleaner.get_foil(),
+                'game_market_id': raw_badge_cleaner.get_market_id(),
+                'pure_badge_page_id': raw_badge_cleaner.get_pure_badge_page_id(),
+                'experience': xp,
+                'unlocked_at': raw_badge_cleaner.get_unlocked_datetime(),
+            })
+        return badge_info
+
 
     class BadgeCleaner:
 
@@ -81,8 +112,7 @@ class ProfileBadgesPageCleaner:
 
         def get_unlocked_datetime(self) -> str:
             unlckd_datetime_raw = self.badge_raw.find_class('badge_info_unlocked')[0].text
-            unlckd_datetime_raw_list = unlckd_datetime_raw.replace('Unlocked', '').replace('@', '').replace(',',
-                                                                                                            '').split()
+            unlckd_datetime_raw_list = unlckd_datetime_raw.replace('Unlocked', '').replace('@', '').replace(',', '').split()
 
             unlckd_time_raw = unlckd_datetime_raw_list.pop(-1)
             unlckd_time = unlckd_time_raw.replace('am', ' AM').replace('pm', ' PM')

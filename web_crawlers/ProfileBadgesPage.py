@@ -18,12 +18,12 @@ class ProfileBadgesPage(SteamWebPage, name='profile_badges'):
         return f'{super().BASESTEAMURL}profiles/{steam_id}/badges/'
 
     def interact(self, cookies: dict, **kwargs) -> requests.Response:
-        page: int = kwargs['page']
+        page_number: int = kwargs['page_number']
 
         url = self.generate_url(**kwargs)
         params = {
             'sort': 'a',
-            'p': page
+            'p': page_number
         }
 
         response = requests.get(url, params=params, cookies=cookies)

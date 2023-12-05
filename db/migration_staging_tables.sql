@@ -1,4 +1,5 @@
 
+--DROP TABLE IF EXISTS staging.steam_badge;
 --DROP TABLE IF EXISTS staging.steam_asset;
 --DROP TABLE IF EXISTS staging.steam_item;
 --DROP TABLE IF EXISTS staging.game;
@@ -44,5 +45,17 @@ CREATE TABLE IF NOT EXISTS staging.steam_asset
 	, asset_id TEXT
 	, marketable BOOL
 	, created_at TIMESTAMP DEFAULT NOW()::TIMESTAMP
+   );
+
+
+CREATE TABLE IF NOT EXISTS staging.steam_badge
+  (
+	  name TEXT
+	, level INT
+	, foil BOOL
+	, game_market_id TEXT
+	, pure_badge_page_id INT
+	, experience INT
+	, unlocked_at TIMESTAMP
    );
 

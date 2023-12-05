@@ -42,11 +42,11 @@ class SteamUser:
         pass
 
     def get_badges(self, logged_in: bool = True) -> None:
-        ScrapProfileBadgesPage().run(
+        ScrapProfileBadgesPage(
             self.__crawler,
+            self.__user_id,
             logged_in=logged_in,
-            user_id=self.__user_id,
-        )
+        ).get_profile_badges()
         GetTradingCardsOfNewGames(self.__crawler).run()
 
     def update_inventory(self) -> None:
