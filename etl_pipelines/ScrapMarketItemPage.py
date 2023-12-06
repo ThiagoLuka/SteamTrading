@@ -38,9 +38,10 @@ class ScrapMarketItemPage:
                     GenericUI.progress_completed(progress=index+1,total=len(self.__items), text=progress_text)
                     break
                 except Exception as error:
+                    if retries_left == self.__retries:
+                        print('')
                     retries_left -= 1
-                    print(f"\n{error}: {item['name']}")
-                    GenericUI.progress_completed(progress=index+1, total=len(self.__items), text=progress_text)
+                    print(f"{error}: {item['name']}")
                     if not retries_left:
                         raise error
 
