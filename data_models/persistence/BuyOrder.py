@@ -22,7 +22,7 @@ class BuyOrder(BasePersistenceModel, name='buy_order'):
                 'buy_order_id', 'steam_buy_order_id', 'user_id', 'item_steam_id', 'active', 'price',
                 'qtd_start', 'qtd_estimate', 'qtd_current', 'created_at', 'updated_at', 'removed_at'
             ],
-            'staging': ['steam_buy_order_id', 'item_id', 'user_id', 'price', 'quantity'],
+            'staging': ['steam_buy_order_id', 'item_id', 'user_id', 'price', 'quantity', 'created_at'],
         }.get(table_type, [])
 
     def _transfer_staging_to_public(self, empty_buy_order: bool) -> None:
@@ -38,23 +38,18 @@ class BuyOrder(BasePersistenceModel, name='buy_order'):
         return f"""
             BEGIN TRANSACTION;
             
-            WITH
-            	id_to_inactivate AS (
-            		SELECT buy_order_id AS id FROM {public}
-                    WHERE
-                        (item_steam_id, user_id) = (SELECT item_id, user_id FROM {staging})
-                        AND active
-                    ORDER BY created_at DESC
-                    LIMIT 1
-            	)
-            UPDATE {public}
+            UPDATE {public} pbo
             SET
             	  active = False
             	, qtd_estimate = 0
             	, qtd_current = 0
-            	, updated_at = NOW()::TIMESTAMP
-            	, removed_at = NOW()::TIMESTAMP
-            WHERE {public}.buy_order_id = (SELECT id FROM id_to_inactivate);
+            	, updated_at = s.created_at
+            	, removed_at = s.created_at
+            FROM {staging} s
+            WHERE 
+                pbo.active
+                AND pbo.item_steam_id = s.item_id
+                AND pbo.user_id = s.user_id;
             
             TRUNCATE TABLE {staging};
             COMMIT;
@@ -65,6 +60,12 @@ class BuyOrder(BasePersistenceModel, name='buy_order'):
         staging = self.table_name(table_type='staging')
         return f"""
             BEGIN TRANSACTION;
+            
+            DELETE FROM {staging} s
+            USING {public} pbo
+            WHERE 
+            	s.steam_buy_order_id = pbo.steam_buy_order_id
+            	AND s.quantity = pbo.qtd_current;
             
             INSERT INTO {public} (
                   steam_buy_order_id
@@ -88,22 +89,17 @@ class BuyOrder(BasePersistenceModel, name='buy_order'):
             	quantity AS qtd_start,
             	quantity AS qtd_estimate,
             	quantity AS qtd_current,
-            	NOW()::TIMESTAMP AS created_at,
-            	NOW()::TIMESTAMP AS updated_at,
+            	created_at AS created_at,
+            	created_at AS updated_at,
             	NULL AS removed_at
-            FROM {staging} 
+            FROM {staging} s
             ON CONFLICT (steam_buy_order_id)
             DO UPDATE
             SET
-            	  user_id = {public}.user_id
-            	, item_steam_id = {public}.item_steam_id
-            	, active = True
-            	, price = {public}.price
-            	, qtd_start = {public}.qtd_start
+            	  active = True
             	, qtd_estimate = EXCLUDED.qtd_estimate
             	, qtd_current = EXCLUDED.qtd_estimate
-            	, created_at = {public}.created_at
-            	, updated_at = NOW()::TIMESTAMP
+            	, updated_at = EXCLUDED.created_at
             	, removed_at = NULL
             ;
             

@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS staging.buy_order
 	, user_id INT
 	, price INT
 	, quantity INT
+	, created_at TIMESTAMP DEFAULT NOW()::TIMESTAMP
    );
 
 
