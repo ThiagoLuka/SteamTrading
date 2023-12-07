@@ -61,12 +61,6 @@ class BuyOrder(BasePersistenceModel, name='buy_order'):
         return f"""
             BEGIN TRANSACTION;
             
-            DELETE FROM {staging} s
-            USING {public} pbo
-            WHERE 
-            	s.steam_buy_order_id = pbo.steam_buy_order_id
-            	AND s.quantity = pbo.qtd_current;
-            
             INSERT INTO {public} (
                   steam_buy_order_id
                 , user_id
