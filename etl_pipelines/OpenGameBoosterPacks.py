@@ -33,7 +33,7 @@ class OpenGameBoosterPacks:
                 for index2, asset_id in enumerate(asset_ids):
                     self.__post_request(web_crawler, asset_id)
                     GenericUI.progress_completed(progress=index2+1, total=len(asset_ids), text=progress_text)
-                booster_pack_not_opened_asset_ids = update_inventory_task.after_booster_pack_opened(game, asset_ids)
+                booster_pack_not_opened_asset_ids = update_inventory_task.after_booster_pack_opened(game['market_id'])
                 asset_ids = booster_pack_not_opened_asset_ids
 
     @staticmethod
