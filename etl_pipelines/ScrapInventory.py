@@ -40,13 +40,14 @@ class ScrapInventory:
         PersistToDB.persist(
             'game',
             games_found_in_inventory,
+            source='inventory'
         )
 
         steam_items_found_in_inventory = inventory_cleaner.get_steam_item_info()
         PersistToDB.persist(
             'steam_item',
             steam_items_found_in_inventory,
-            update_item_name=True,
+            source='inventory',
         )
 
         assets_found_in_inventory = inventory_cleaner.get_asset_info()

@@ -53,34 +53,3 @@ class SteamGamesRepository:
         """
         result = DBController.execute(query=query, get_result=True)
         return result
-
-    @staticmethod
-    def upsert_single_game(name: str, market_id: str, columns: list) -> None:
-        name = QueryBuilderPG.sanitize_string(name)
-        query = f"""
-            INSERT INTO games ({', '.join(columns)})
-            VALUES ('{name}', '{market_id}')
-            ON CONFLICT (market_id) DO UPDATE
-            SET name = EXCLUDED.name;
-        """
-        DBController.execute(query=query)
-
-    @staticmethod
-    def upsert_multiple_games(games: zip, columns: list) -> None:
-        values = QueryBuilderPG.unzip_to_query_values_str(games)
-        query = f"""
-            INSERT INTO games ({', '.join(columns)})
-            VALUES {values}
-            ON CONFLICT (market_id) DO UPDATE
-            SET name = EXCLUDED.name;
-        """
-        DBController.execute(query=query)
-
-    @staticmethod
-    def update_to_has_no_cards(game_id: int) -> None:
-        query = f"""
-            UPDATE games
-            SET has_trading_cards = False
-            WHERE games.id = {game_id}
-        """
-        DBController.execute(query=query)

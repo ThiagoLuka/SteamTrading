@@ -11,17 +11,18 @@ class GameCardsPageCleaner:
             return True
         return not self.__page.find_class('badge_card_set_cards')[0].getchildren()[0].getchildren()
 
-    def get_cards_info(self, game_market_id: str) -> dict:
+    def get_cards_info(self, game_market_id: str) -> list[dict]:
 
         names, set_numbers = self.__get_card_name_and_set_number()
 
         url_names = self.__get_url_names(len(names), game_market_id)
 
-        page_clean_info: dict = {
-            'names': names,
-            'set_numbers': set_numbers,
-            'url_names': url_names,
-        }
+        cards_info_list = list(zip(url_names, names, set_numbers))
+        page_clean_info: list[dict] = [{
+            'market_url_name': item[0],
+            'name': item[1],
+            'set_number': item[2],
+        } for item in cards_info_list]
 
         return page_clean_info
 

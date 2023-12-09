@@ -33,7 +33,7 @@ class ScrapProfileBadgesPage:
         PersistToDB.persist(
             'game',
             games_found_in_badges_page,
-            update_game_name=False,
+            source='profile_badge',
         )
 
         PersistToDB.persist(

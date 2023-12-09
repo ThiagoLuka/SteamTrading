@@ -1,7 +1,6 @@
 import pandas as pd
 
 from data_models.PandasDataModel import PandasDataModel
-from data_models.PandasUtils import PandasUtils
 from repositories.SteamGamesRepository import SteamGamesRepository
 
 
@@ -33,19 +32,6 @@ class SteamGames(
     @property
     def market_id(self):
         return self.df.loc[0, 'market_id']
-
-    def save(self) -> None:
-        saved = SteamGames.get_all()
-        new_and_update = PandasUtils.df_set_difference(self.df, saved.df, 'name')
-        if new_and_update.empty:
-            return
-        cols_to_insert = ['name', 'market_id']
-        zipped_data = PandasUtils.zip_df_columns(new_and_update, cols_to_insert)
-        SteamGamesRepository.upsert_multiple_games(zipped_data, cols_to_insert)
-
-    @staticmethod
-    def update_to_has_no_cards(game_id: int) -> None:
-        SteamGamesRepository.update_to_has_no_cards(game_id)
 
     @staticmethod
     def get_all() -> 'SteamGames':

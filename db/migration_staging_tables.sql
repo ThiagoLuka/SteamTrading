@@ -1,7 +1,8 @@
 
 --DROP TABLE IF EXISTS staging.steam_badge;
 --DROP TABLE IF EXISTS staging.steam_asset;
---DROP TABLE IF EXISTS staging.steam_item;
+--DROP TABLE IF EXISTS staging.staging.steam_item_from_inventory;
+--DROP TABLE IF EXISTS staging.steam_item_from_profile_game_cards;
 --DROP TABLE IF EXISTS staging.game;
 --DROP TABLE IF EXISTS staging.buy_order;
 --DROP SCHEMA staging;
@@ -28,7 +29,7 @@ CREATE TABLE IF NOT EXISTS staging.game
    );
 
 
-CREATE TABLE IF NOT EXISTS staging.steam_item
+CREATE TABLE IF NOT EXISTS staging.steam_item_from_inventory
   (
 	  game_market_id TEXT
 	, market_url_name TEXT
@@ -36,6 +37,16 @@ CREATE TABLE IF NOT EXISTS staging.steam_item
 	, steam_item_type_id INT
 	, steam_item_type_name TEXT
 	, class_id TEXT
+   );
+
+CREATE TABLE IF NOT EXISTS staging.steam_item_from_profile_game_cards
+  (
+	  game_market_id TEXT
+	, market_url_name TEXT
+	, name TEXT
+	, steam_item_type_id INT
+	, set_number INT
+	, foil BOOL
    );
 
 
