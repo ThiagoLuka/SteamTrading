@@ -4,12 +4,6 @@ from db.DBController import DBController
 class BuyOrdersRepository:
 
     @staticmethod
-    def get_all(columns: list) -> list[tuple]:
-        query = f"""SELECT {', '.join(columns)} FROM buy_orders;"""
-        result = DBController.execute(query=query, get_result=True)
-        return result
-
-    @staticmethod
     def get_game_ids_with_most_outdated_orders(n_of_games: int, user_id: int) -> list[tuple]:
         query = f"""
             SELECT

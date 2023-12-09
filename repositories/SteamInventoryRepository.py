@@ -4,18 +4,6 @@ from db.DBController import DBController
 class SteamInventoryRepository:
 
     @staticmethod
-    def get_current_by_user_id(user_id: int, columns: list) -> list[tuple]:
-        query = f"""
-            SELECT {', '.join(columns)}
-            FROM item_steam_assets
-            WHERE
-                user_id = '{user_id}'
-                AND removed_at IS NULL;
-        """
-        result = DBController.execute(query=query, get_result=True)
-        return result
-
-    @staticmethod
     def get_current_size_by_user_id(user_id: int) -> int:
         query = f"""
             SELECT COUNT(id) FROM item_steam_assets

@@ -47,36 +47,10 @@ class SteamGames(
         return SteamGames._from_db('default', data)
 
     @staticmethod
-    def get_all_by_name(name: str) -> 'SteamGames':
-        cols = SteamGames._get_class_columns()
-        data = SteamGamesRepository.get_by_name(name, cols)
-        return SteamGames._from_db('default', data)
-
-    @staticmethod
     def get_all_with_trading_cards_not_registered() -> 'SteamGames':
         table = 'default'
         data = SteamGamesRepository.get_all_with_trading_cards_not_registered()
         return SteamGames._from_db(table, data)
-
-    @staticmethod
-    def get_id_by_name(name: str) -> str:
-        cols = SteamGames._get_class_columns()
-        result = SteamGamesRepository.get_by_name(name, cols)
-        return result[0][0]
-
-    @staticmethod
-    def get_id_by_market_id(market_id: str) -> str:
-        cols = SteamGames._get_class_columns()
-        result = SteamGamesRepository.get_by_market_id(market_id, cols)
-        return result[0][0]
-
-    @staticmethod
-    def get_ids_list_by_market_ids_list(market_ids: list) -> list:
-        market_ids: pd.Series = SteamGames(market_id=market_ids).df[['market_id']]
-        all_games_df = SteamGames.get_all().df.copy()
-        all_games_df['market_id'] = all_games_df['market_id'].astype(int)
-        new_complete_df = pd.merge(market_ids, all_games_df, how='left')
-        return list(new_complete_df['id'])
 
     def get_market_ids(self) -> list:
         if self.empty:

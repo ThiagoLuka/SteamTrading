@@ -18,12 +18,6 @@ class SteamInventory(
         super().__init__(table, **data)
 
     @staticmethod
-    def get_current_inventory_from_db(user_id: int):
-        cols = SteamInventory._get_class_columns('default')
-        data = SteamInventoryRepository.get_current_by_user_id(user_id, cols)
-        return SteamInventory._from_db('default', data)
-
-    @staticmethod
     def get_current_inventory_size(user_id: int) -> int:
         return SteamInventoryRepository.get_current_size_by_user_id(user_id)
 
