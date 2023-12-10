@@ -1,4 +1,4 @@
-from data_models.read.SteamBadgesRepository import SteamBadgesRepository
+from data_models.query.SteamBadgesRepository import SteamBadgesRepository
 from data_models.PandasDataModel import PandasDataModel
 from data_models.MathUtils import MathUtils
 

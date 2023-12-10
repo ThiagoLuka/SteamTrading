@@ -1,4 +1,4 @@
-from data_models.read.BuyOrdersRepository import BuyOrdersRepository
+from data_models.query.BuyOrdersRepository import BuyOrdersRepository
 from data_models.PandasDataModel import PandasDataModel
 
 

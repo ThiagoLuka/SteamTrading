@@ -1,5 +1,5 @@
 
-from data_models.persistence.BasePersistenceModel import BasePersistenceModel
+from data_models.command.BasePersistenceModel import BasePersistenceModel
 
 
 class PersistToDB:

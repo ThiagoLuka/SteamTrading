@@ -6,7 +6,7 @@ from etl_pipelines.ScrapMarketMainPage import ScrapMarketMainPage
 from etl_pipelines.ScrapMarketItemPage import ScrapMarketItemPage
 from web_crawlers import SteamWebCrawler
 from data_models.SteamBadges import SteamBadges
-from data_models.read.SteamUserRepository import SteamUserRepository
+from data_models.query.SteamUserRepository import SteamUserRepository
 
 
 class SteamUser:

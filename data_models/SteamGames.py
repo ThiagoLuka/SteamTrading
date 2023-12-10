@@ -1,5 +1,5 @@
 from data_models.PandasDataModel import PandasDataModel
-from data_models.read.SteamGamesRepository import SteamGamesRepository
+from data_models.query.SteamGamesRepository import SteamGamesRepository
 
 
 class SteamGames(
