@@ -3,7 +3,6 @@ import sys
 from user_interfaces.MainUI import MainUI
 from steam_users.SteamUserController import SteamUserController
 from steam_trader.SteamTraderController import SteamTraderController
-from db.DBController import DBController
 
 
 if __name__ == '__main__':
@@ -11,7 +10,6 @@ if __name__ == '__main__':
     SteamUserController()
     if not SteamUserController().has_user:
         sys.exit(0)
-    DBController()
 
     while True:
         command = MainUI.run()

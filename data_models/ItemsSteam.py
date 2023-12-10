@@ -1,5 +1,5 @@
 from data_models.PandasDataModel import PandasDataModel
-from repositories.ItemsSteamRepository import ItemsSteamRepository
+from data_models.read.ItemsSteamRepository import ItemsSteamRepository
 
 
 class ItemsSteam(

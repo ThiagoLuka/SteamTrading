@@ -1,4 +1,4 @@
-from db.DBController import DBController
+from data_models.db.DBController import DBController
 
 
 class SteamInventoryRepository:

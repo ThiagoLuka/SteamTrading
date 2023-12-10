@@ -29,8 +29,8 @@ import pandas as pd
 from data_models.SteamGames import SteamGames
 from data_models.ItemsSteam import ItemsSteam
 from data_models.PandasUtils import PandasUtils
-from repositories.QueryBuilderPG import QueryBuilderPG
-from db.DBController import DBController
+from data_models.QueryBuilderPG import QueryBuilderPG
+from data_models.db.DBController import DBController
 
 def data_extraction() -> dict:
     with open('db/buy_orders.json', encoding='utf-8') as file:

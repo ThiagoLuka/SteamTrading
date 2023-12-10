@@ -1,4 +1,4 @@
-from repositories.SteamInventoryRepository import SteamInventoryRepository
+from data_models.read.SteamInventoryRepository import SteamInventoryRepository
 from data_models.PandasDataModel import PandasDataModel
 
 

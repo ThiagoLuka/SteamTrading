@@ -1,7 +1,5 @@
-import pandas as pd
-
 from data_models.PandasDataModel import PandasDataModel
-from repositories.SteamGamesRepository import SteamGamesRepository
+from data_models.read.SteamGamesRepository import SteamGamesRepository
 
 
 class SteamGames(
