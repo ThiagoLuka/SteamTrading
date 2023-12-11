@@ -2,17 +2,16 @@ import requests
 import concurrent.futures
 
 from user_interfaces.GenericUI import GenericUI
-from web_crawlers import SteamWebCrawler
 from web_page_cleaning.ProfileBadgesPageCleaner import ProfileBadgesPageCleaner
+from steam_user.SteamUser import SteamUser
 from data_models import PersistToDB
 
 
 class ScrapProfileBadgesPage:
 
-    def __init__(self, web_crawler: SteamWebCrawler, user_id: int, logged_in: bool = True):
-        self.__crawler = web_crawler
-        self.__user_id = user_id
-        self.__logged_in = logged_in
+    def __init__(self, steam_user: SteamUser):
+        self.__steam_user = steam_user
+        self.__logged_in = True
 
     def get_profile_badges(self) -> None:
         progress_text = 'Extracting and cleaning badges data'
@@ -39,7 +38,7 @@ class ScrapProfileBadgesPage:
         PersistToDB.persist(
             'steam_badge',
             badges_found,
-            user_id=self.__user_id,
+            user_id=self.__steam_user.user_id,
         )
 
     def _get_first_page(self) -> ProfileBadgesPageCleaner:
@@ -61,7 +60,7 @@ class ScrapProfileBadgesPage:
         return pages
 
     def _get_page(self, page_number: int = None) -> requests.Response:
-        custom_status_code, response = self.__crawler.interact(
+        custom_status_code, response = self.__steam_user.web_crawler.interact(
             'profile_badges',
             logged_in=self.__logged_in,
             page_number=page_number,

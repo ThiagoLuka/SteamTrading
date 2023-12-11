@@ -2,16 +2,15 @@ import requests
 from typing import Union
 
 from user_interfaces.GenericUI import GenericUI
-from web_crawlers import SteamWebCrawler
+from steam_user.SteamUser import SteamUser
 from web_page_cleaning.InventoryPageCleaner import InventoryPageCleaner
 from data_models import PersistToDB
 
 
 class ScrapInventory:
 
-    def __init__(self, web_crawler: SteamWebCrawler, user_id: int):
-        self.__crawler = web_crawler
-        self.__user_id = user_id
+    def __init__(self, steam_user: SteamUser):
+        self.__steam_user = steam_user
         self.__items_per_page = 2000
         self.__extraction_progress_counter = 0
 
@@ -54,7 +53,7 @@ class ScrapInventory:
         PersistToDB.persist(
             'steam_asset',
             assets_found_in_inventory,
-            user_id=self.__user_id,
+            user_id=self.__steam_user.user_id,
         )
 
         GenericUI.progress_completed(progress=1, total=1, text=progress_text)
@@ -90,7 +89,7 @@ class ScrapInventory:
         return inventory_cleaner
 
     def _get_page(self, start_assetid: str = None) -> (int, Union[requests.Response, str]):
-        custom_status_code, response = self.__crawler.interact(
+        custom_status_code, response = self.__steam_user.web_crawler.interact(
             'inventory_page',
             logged_in=True,
             items_per_page=self.__items_per_page,

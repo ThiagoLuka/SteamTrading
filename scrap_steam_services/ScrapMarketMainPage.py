@@ -1,16 +1,15 @@
 import requests
 
 from user_interfaces.GenericUI import GenericUI
-from web_crawlers.SteamWebCrawler import SteamWebCrawler
+from steam_user.SteamUser import SteamUser
 from web_page_cleaning.SellListingPageCleaner import SellListingPageCleaner
 from data_models import PersistToDB
 
 
 class ScrapMarketMainPage:
 
-    def __init__(self, web_crawler: SteamWebCrawler, user_id: int):
-        self.__crawler = web_crawler
-        self.__user_id = user_id
+    def __init__(self, steam_user: SteamUser):
+        self.__steam_user = steam_user
         self.__items_per_page = 100
         self.__extraction_progress_counter = 0
 
@@ -23,7 +22,7 @@ class ScrapMarketMainPage:
         PersistToDB.persist(
             'sell_listing',
             cleaned_data,
-            self.__user_id,
+            user_id=self.__steam_user.user_id,
         )
 
     def __full_extraction(self) -> SellListingPageCleaner:
@@ -38,7 +37,7 @@ class ScrapMarketMainPage:
         return listings_cleaner
 
     def __get_page(self, offset: int = None) -> requests.Response:
-        status, response = self.__crawler.interact(
+        status, response = self.__steam_user.web_crawler.interact(
             'sell_listing_page',
             listings_start_count=offset,
             listings_per_page=self.__items_per_page,

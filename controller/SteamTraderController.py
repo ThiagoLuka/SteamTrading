@@ -4,8 +4,11 @@ from queue import Queue, Empty
 
 from user_interfaces.GenericUI import GenericUI
 from user_interfaces.SteamTraderUI import SteamTraderUI
+from scrap_steam_services import (
+    OpenGameBoosterPacks, ScrapInventory, ScrapMarketItemPage, ScrapMarketMainPage
+)
 from data_models import PersistToDB
-from steam_users.SteamUser import SteamUser
+from steam_user.SteamUser import SteamUser
 from data_models.SteamGames import SteamGames
 from data_models.ItemsSteam import ItemsSteam
 from data_models.BuyOrders import BuyOrders
@@ -47,7 +50,9 @@ class SteamTraderController:
 
     def overview_marketable_cards(self) -> None:
         if GenericUI.update_inventory():
-            self.__user.update_inventory()
+            ScrapInventory(
+                steam_user=self.__user,
+            ).full_update()
         data_for_overview = SteamInventory.get_overview_marketable_cards(self.__user_id)
         inventory_size = SteamInventory.get_current_inventory_size(self.__user_id)
         SteamTraderUI.overview_marketable_cards(data_for_overview, inventory_size)
@@ -64,11 +69,18 @@ class SteamTraderController:
                 'name': item.df.loc[0, 'name'],
                 'market_url_name': item.df.loc[0, 'market_url_name'],
             } for item in items]
-            self.__user.update_game_buy_orders(game_name=game.name, game_market_id=game.market_id, items=items_raw)
+            ScrapMarketItemPage(
+                steam_user=self.__user,
+                game_name=game.name,
+                game_market_id=game.market_id,
+                items=items_raw
+            ).get_game_buy_orders()
             time.sleep(10)
 
     def update_sell_listings(self) -> None:
-        self.__user.update_sell_listing()
+        ScrapMarketMainPage(
+            steam_user=self.__user,
+        ).get_sell_listings()
 
     def create_buy_orders(self) -> None:
         if SteamTraderUI.create_first_buy_order_of_game():
@@ -126,8 +138,10 @@ class SteamTraderController:
                     }))
 
     def open_booster_packs(self) -> None:
-        n_of_games = SteamTraderUI.open_booster_packs()
-        self.__user.open_booster_packs(n_of_games)
+        games_quantity = SteamTraderUI.open_booster_packs()
+        OpenGameBoosterPacks(
+            steam_user=self.__user
+        ).run(games_quantity=games_quantity)
 
     def create_sell_listings(self) -> None:
         n_games_to_update = SteamTraderUI.sell_cards_prompt_message()

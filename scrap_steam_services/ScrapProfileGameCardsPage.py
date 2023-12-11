@@ -2,8 +2,8 @@ import requests
 from typing import Union
 
 from user_interfaces.GenericUI import GenericUI
-from etl_pipelines.CheckItemMarketUrlName import CheckItemMarketUrlName
-from web_crawlers import SteamWebCrawler
+from scrap_steam_services import CheckItemMarketUrlName
+from steam_user.SteamUser import SteamUser
 from web_page_cleaning.GameCardsPageCleaner import GameCardsPageCleaner
 from data_models.SteamGames import SteamGames
 from data_models.ItemsSteam import ItemsSteam
@@ -12,8 +12,8 @@ from data_models import PersistToDB
 
 class ScrapProfileGameCardsPage:
 
-    def __init__(self, web_crawler: SteamWebCrawler):
-        self.__crawler = web_crawler
+    def __init__(self, steam_user: SteamUser):
+        self.__steam_user = steam_user
 
     def get_new_trading_cards(self) -> None:
         games = SteamGames.get_all_with_trading_cards_not_registered()
@@ -97,7 +97,7 @@ class ScrapProfileGameCardsPage:
             GenericUI.progress_completed(progress=index + 1, total=progress_total, text=progress_text)
 
     def __get_cards_page(self, game_market_id: str) -> (int, Union[requests.Response, str]):
-        custom_status_code, response = self.__crawler.interact(
+        custom_status_code, response = self.__steam_user.web_crawler.interact(
             'game_cards_page',
             logged_in=True,
             game_market_id=game_market_id
@@ -105,7 +105,9 @@ class ScrapProfileGameCardsPage:
         return custom_status_code, response
 
     def __get_verified_url_name(self, item_name: str, game_market_id: str) -> str:
-        item_url_name = CheckItemMarketUrlName(self.__crawler).run(
+        item_url_name = CheckItemMarketUrlName(
+            self.__steam_user
+        ).run(
             item_type='trading_card',
             game_market_id=game_market_id,
             card_name=item_name,

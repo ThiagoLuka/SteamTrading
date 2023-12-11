@@ -1,7 +1,7 @@
 from utils.Singleton import Singleton
 from user_interfaces.SteamUserUI import SteamUserUI
 from user_interfaces.GenericUI import GenericUI
-from steam_users.SteamUser import SteamUser
+from steam_user.SteamUser import SteamUser
 
 
 class SteamUserController(metaclass=Singleton):

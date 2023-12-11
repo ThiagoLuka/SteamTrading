@@ -2,18 +2,17 @@ import requests
 import time
 
 from user_interfaces.GenericUI import GenericUI
-from web_crawlers.SteamWebCrawler import SteamWebCrawler
+from steam_user.SteamUser import SteamUser
 from web_page_cleaning.MarketItemPageCleaner import MarketItemPageCleaner
 from data_models import PersistToDB
 
 
 class ScrapMarketItemPage:
 
-    def __init__(self, web_crawler: SteamWebCrawler, user_id: int, game_info: dict, items: list[dict]):
-        self.__crawler = web_crawler
-        self.__user_id = user_id
-        self.__game_name = game_info['name']
-        self.__game_market_id = game_info['market_id']
+    def __init__(self, steam_user: SteamUser, game_name: str, game_market_id: str, items: list[dict]):
+        self.__steam_user = steam_user
+        self.__game_name = game_name
+        self.__game_market_id = game_market_id
         self.__items = items
         self.__retries = 4
 
@@ -32,7 +31,7 @@ class ScrapMarketItemPage:
                     PersistToDB.persist(
                         'buy_order',
                         [cleaned_data],
-                        user_id=self.__user_id,
+                        user_id=self.__steam_user.user_id,
                         empty_buy_order=empty_buy_order
                     )
                     GenericUI.progress_completed(progress=index+1,total=len(self.__items), text=progress_text)
@@ -51,7 +50,7 @@ class ScrapMarketItemPage:
         return page_cleaner
 
     def __get_page(self, market_url_name: str) -> requests.Response:
-        response_status, response = self.__crawler.interact(
+        response_status, response = self.__steam_user.web_crawler.interact(
             'item_market_page',
             open_web_browser=False,
             game_market_id=self.__game_market_id,

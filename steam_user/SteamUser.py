@@ -1,9 +1,3 @@
-from etl_pipelines.ScrapProfileBadgesPage import ScrapProfileBadgesPage
-from etl_pipelines.ScrapInventory import ScrapInventory
-from etl_pipelines.ScrapProfileGameCardsPage import ScrapProfileGameCardsPage
-from etl_pipelines.OpenGameBoosterPacks import OpenGameBoosterPacks
-from etl_pipelines.ScrapMarketMainPage import ScrapMarketMainPage
-from etl_pipelines.ScrapMarketItemPage import ScrapMarketItemPage
 from web_crawlers import SteamWebCrawler
 from data_models.SteamBadges import SteamBadges
 from data_models.query.SteamUserRepository import SteamUserRepository
@@ -38,28 +32,12 @@ class SteamUser:
     def steam_level(self) -> int:
         return self.__steam_level
 
+    @property
+    def web_crawler(self) -> SteamWebCrawler:
+        return self.__crawler
+
     def log_in(self, login_data: dict) -> None:
         pass
-
-    def get_badges(self, logged_in: bool = True) -> None:
-        ScrapProfileBadgesPage(
-            self.__crawler,
-            self.__user_id,
-            logged_in=logged_in,
-        ).get_profile_badges()
-        ScrapProfileGameCardsPage(
-            self.__crawler
-        ).get_new_trading_cards()
-
-    def update_inventory(self) -> None:
-        ScrapInventory(self.__crawler, self.__user_id).full_update()
-
-    def open_booster_packs(self, n_of_games: int) -> None:
-        OpenGameBoosterPacks().run(
-            self.__crawler,
-            user_id=self.__user_id,
-            n_of_games=n_of_games
-        )
 
     def create_sell_listing(self, asset_id: str, price: int) -> None:
         status, result = self.__crawler.interact(
@@ -71,12 +49,6 @@ class SteamUser:
             print(f'\n{status}: {result}\n')
             return
 
-    def update_sell_listing(self) -> None:
-        ScrapMarketMainPage(
-            self.__crawler,
-            self.__user_id,
-        ).get_sell_listings()
-
     def create_buy_order(self, item_url_name: str, price: int, qtd: int, game_market_id: int) -> dict:
         status, result = self.__crawler.interact(
             'create_buy_order',
@@ -86,17 +58,6 @@ class SteamUser:
             quantity=qtd
         )
         return result.json()
-
-    def update_game_buy_orders(self, game_name: str, game_market_id: str, items: list[dict]):
-        ScrapMarketItemPage(
-            self.__crawler,
-            self.__user_id,
-            game_info={
-                'name': game_name,
-                'market_id': game_market_id,
-            },
-            items=items
-        ).get_game_buy_orders()
 
     def open_market_item_page_in_browser(self, game_market_id: str, item_market_url_name: str):
         self.__crawler.interact(

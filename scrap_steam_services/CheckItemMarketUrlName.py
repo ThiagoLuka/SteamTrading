@@ -1,13 +1,13 @@
 import requests
 
-from web_crawlers import SteamWebCrawler
+from steam_user.SteamUser import SteamUser
 from web_page_cleaning.MarketItemPageCleaner import MarketItemPageCleaner
 
 
 class CheckItemMarketUrlName:
 
-    def __init__(self, web_crawler: SteamWebCrawler):
-        self.__crawler = web_crawler
+    def __init__(self, steam_user: SteamUser):
+        self.__steam_user = steam_user
 
     def run(self, **additional_info) -> str:
         verified_url_name = ''
@@ -56,7 +56,7 @@ class CheckItemMarketUrlName:
         return ''
 
     def __item_url_is_valid(self, game_market_id: str, item_url_name: str) -> bool:
-        custom_status_code, response = self.__crawler.interact(
+        custom_status_code, response = self.__steam_user.web_crawler.interact(
             'item_market_page',
             game_market_id=game_market_id,
             item_url_name=item_url_name,
