@@ -3,7 +3,7 @@ import time
 
 from user_interfaces.GenericUI import GenericUI
 from steam_user.SteamUser import SteamUser
-from web_page_cleaning.MarketItemPageCleaner import MarketItemPageCleaner
+from scrap_steam_services.web_page_cleaning import MarketItemPageCleaner
 from data_models import PersistToDB
 
 

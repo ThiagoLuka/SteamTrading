@@ -1,7 +1,7 @@
 import requests
 
 
-class InventoryPageCleaner:
+class InventoryCleaner:
 
     def __init__(self):
         self.__inventory: dict = {

@@ -3,7 +3,7 @@ from typing import Union
 
 from user_interfaces.GenericUI import GenericUI
 from steam_user.SteamUser import SteamUser
-from web_page_cleaning.InventoryPageCleaner import InventoryPageCleaner
+from scrap_steam_services.web_page_cleaning import InventoryCleaner
 from data_models import PersistToDB
 
 
@@ -15,13 +15,13 @@ class ScrapInventory:
         self.__extraction_progress_counter = 0
 
     def full_update(self) -> None:
-        inventory_cleaner: InventoryPageCleaner = self._full_extraction()
+        inventory_cleaner: InventoryCleaner = self._full_extraction()
         if inventory_cleaner.empty:
             return
         self._save_to_db(inventory_cleaner)
 
     def after_booster_pack_opened(self, game_market_id: str) -> list[str]:
-        inventory_cleaner: InventoryPageCleaner = self._full_extraction()
+        inventory_cleaner: InventoryCleaner = self._full_extraction()
         if inventory_cleaner.empty:
             raise Exception('Inventory did not download correctly.')
         self._save_to_db(inventory_cleaner)
@@ -31,7 +31,7 @@ class ScrapInventory:
         bps_in_inventory: list[str] = inventory_cleaner.get_game_booster_pack_asset_ids(game_market_id=game_market_id)
         return bps_in_inventory
 
-    def _save_to_db(self, inventory_cleaner: InventoryPageCleaner) -> None:
+    def _save_to_db(self, inventory_cleaner: InventoryCleaner) -> None:
         progress_text = 'Cleaning and saving data'
         GenericUI.progress_completed(progress=0, total=1, text=progress_text)
 
@@ -58,8 +58,8 @@ class ScrapInventory:
 
         GenericUI.progress_completed(progress=1, total=1, text=progress_text)
 
-    def _full_extraction(self) -> InventoryPageCleaner:
-        inventory_cleaner = InventoryPageCleaner()
+    def _full_extraction(self) -> InventoryCleaner:
+        inventory_cleaner = InventoryCleaner()
 
         progress_text = 'Downloading full inventory'
         GenericUI.progress_completed(progress=0, total=1, text=progress_text)

@@ -3,7 +3,7 @@ from datetime import datetime, date
 from lxml import html
 
 
-class SellListingPageCleaner:
+class MarketMainPageCleaner:
 
     def __init__(self):
         self.__total_count = 0

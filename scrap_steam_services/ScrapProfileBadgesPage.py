@@ -2,8 +2,8 @@ import requests
 import concurrent.futures
 
 from user_interfaces.GenericUI import GenericUI
-from web_page_cleaning.ProfileBadgesPageCleaner import ProfileBadgesPageCleaner
 from steam_user.SteamUser import SteamUser
+from scrap_steam_services.web_page_cleaning import ProfileBadgesPageCleaner
 from data_models import PersistToDB
 
 

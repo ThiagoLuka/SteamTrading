@@ -2,7 +2,7 @@ import requests
 
 from user_interfaces.GenericUI import GenericUI
 from steam_user.SteamUser import SteamUser
-from web_page_cleaning.SellListingPageCleaner import SellListingPageCleaner
+from scrap_steam_services.web_page_cleaning import MarketMainPageCleaner
 from data_models import PersistToDB
 
 
@@ -25,10 +25,10 @@ class ScrapMarketMainPage:
             user_id=self.__steam_user.user_id,
         )
 
-    def __full_extraction(self) -> SellListingPageCleaner:
+    def __full_extraction(self) -> MarketMainPageCleaner:
         progress_text = 'Downloading every sell listing'
         GenericUI.progress_completed(progress=0, total=1, text=progress_text)
-        listings_cleaner = SellListingPageCleaner()
+        listings_cleaner = MarketMainPageCleaner()
         while listings_cleaner.has_more_items_to_download():
             page_response = self.__get_page(offset=listings_cleaner.listings_downloaded)
             listings_raw = page_response.json()

@@ -2,9 +2,9 @@ import requests
 from typing import Union
 
 from user_interfaces.GenericUI import GenericUI
-from scrap_steam_services import CheckItemMarketUrlName
 from steam_user.SteamUser import SteamUser
-from web_page_cleaning.GameCardsPageCleaner import GameCardsPageCleaner
+from scrap_steam_services import CheckItemMarketUrlName
+from scrap_steam_services.web_page_cleaning import ProfileGameCardsPageCleaner
 from data_models.SteamGames import SteamGames
 from data_models.ItemsSteam import ItemsSteam
 from data_models import PersistToDB
@@ -36,7 +36,7 @@ class ScrapProfileGameCardsPage:
                 GenericUI.progress_completed(progress=index + 1, total=progress_total, text=progress_text)
                 continue
 
-            page_cleaner = GameCardsPageCleaner(page_response.content)
+            page_cleaner = ProfileGameCardsPageCleaner(page_response.content)
 
             # verify if page has cards (it might not!)
             if page_cleaner.page_has_no_cards():

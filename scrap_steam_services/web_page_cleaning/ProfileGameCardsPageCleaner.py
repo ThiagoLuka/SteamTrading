@@ -1,7 +1,7 @@
 from lxml import html
 
 
-class GameCardsPageCleaner:
+class ProfileGameCardsPageCleaner:
 
     def __init__(self, page_bytes: bytes):
         self.__page: html.HtmlElement = html.fromstring(page_bytes)
