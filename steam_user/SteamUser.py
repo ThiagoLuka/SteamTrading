@@ -1,4 +1,4 @@
-from web_crawlers import SteamWebCrawler
+from steam_web_crawler import SteamWebCrawler
 from data_models.SteamBadges import SteamBadges
 from data_models.query.SteamUserRepository import SteamUserRepository
 

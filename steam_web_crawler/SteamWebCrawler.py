@@ -1,7 +1,7 @@
 import requests
 from typing import Union
 
-from web_crawlers.SteamWebPage import SteamWebPage
+from steam_web_crawler.SteamWebPage import SteamWebPage
 
 
 class SteamWebCrawler:
