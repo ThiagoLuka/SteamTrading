@@ -3,7 +3,7 @@ from typing import Union
 
 from user_interfaces.GenericUI import GenericUI
 from steam_user.SteamUser import SteamUser
-from scrap_steam_services import CheckItemMarketUrlName
+from scrap_steam_services import CheckMarketItemUrlName
 from scrap_steam_services.web_page_cleaning import ProfileGameCardsPageCleaner
 from data_models.SteamGames import SteamGames
 from data_models.ItemsSteam import ItemsSteam
@@ -105,7 +105,7 @@ class ScrapProfileGameCardsPage:
         return custom_status_code, response
 
     def __get_verified_url_name(self, item_name: str, game_market_id: str) -> str:
-        item_url_name = CheckItemMarketUrlName(
+        item_url_name = CheckMarketItemUrlName(
             self.__steam_user
         ).run(
             item_type='trading_card',

@@ -4,7 +4,7 @@ from steam_user.SteamUser import SteamUser
 from scrap_steam_services.web_page_cleaning import MarketItemPageCleaner
 
 
-class CheckItemMarketUrlName:
+class CheckMarketItemUrlName:
 
     def __init__(self, steam_user: SteamUser):
         self.__steam_user = steam_user
