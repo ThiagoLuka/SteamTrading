@@ -1,7 +1,11 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 import requests
 
-from steam_user.SteamUser import SteamUser
 from scrap_steam_services.web_page_cleaning import MarketItemPageCleaner
+
+if TYPE_CHECKING:
+    from steam_user.SteamUser import SteamUser
 
 
 class CheckMarketItemUrlName:

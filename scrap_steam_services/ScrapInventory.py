@@ -1,10 +1,13 @@
+from __future__ import annotations
+from typing import Union, TYPE_CHECKING
 import requests
-from typing import Union
 
 from user_interfaces.GenericUI import GenericUI
-from steam_user.SteamUser import SteamUser
 from scrap_steam_services.web_page_cleaning import InventoryCleaner
 from data_models import PersistToDB
+
+if TYPE_CHECKING:
+    from steam_user.SteamUser import SteamUser
 
 
 class ScrapInventory:

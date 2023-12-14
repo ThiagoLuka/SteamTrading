@@ -1,13 +1,16 @@
+from __future__ import annotations
+from typing import Union, TYPE_CHECKING
 import requests
-from typing import Union
 
 from user_interfaces.GenericUI import GenericUI
-from steam_user.SteamUser import SteamUser
 from scrap_steam_services import CheckMarketItemUrlName
 from scrap_steam_services.web_page_cleaning import ProfileGameCardsPageCleaner
 from data_models.SteamGames import SteamGames
 from data_models.ItemsSteam import ItemsSteam
 from data_models import PersistToDB
+
+if TYPE_CHECKING:
+    from steam_user.SteamUser import SteamUser
 
 
 class ScrapProfileGameCardsPage:

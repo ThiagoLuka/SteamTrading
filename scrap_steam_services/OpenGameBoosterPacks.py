@@ -1,11 +1,14 @@
+from __future__ import annotations
+from typing import Union, TYPE_CHECKING
 import requests
-from typing import Union
 
 from user_interfaces.GenericUI import GenericUI
 from scrap_steam_services.ScrapInventory import ScrapInventory
-from steam_user.SteamUser import SteamUser
 from data_models.SteamInventory import SteamInventory
 from data_models.SteamGames import SteamGames
+
+if TYPE_CHECKING:
+    from steam_user.SteamUser import SteamUser
 
 
 class OpenGameBoosterPacks:

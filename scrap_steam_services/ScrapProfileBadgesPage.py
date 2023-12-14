@@ -1,10 +1,14 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 import requests
 import concurrent.futures
 
 from user_interfaces.GenericUI import GenericUI
-from steam_user.SteamUser import SteamUser
 from scrap_steam_services.web_page_cleaning import ProfileBadgesPageCleaner
 from data_models import PersistToDB
+
+if TYPE_CHECKING:
+    from steam_user.SteamUser import SteamUser
 
 
 class ScrapProfileBadgesPage:
