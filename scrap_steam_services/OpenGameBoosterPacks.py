@@ -3,7 +3,6 @@ from typing import Union, TYPE_CHECKING
 import requests
 
 from user_interfaces.GenericUI import GenericUI
-from scrap_steam_services.ScrapInventory import ScrapInventory
 from data_models.SteamInventory import SteamInventory
 from data_models.SteamGames import SteamGames
 
@@ -17,8 +16,7 @@ class OpenGameBoosterPacks:
         self.__steam_user = steam_user
 
     def run(self, games_quantity: int) -> None:
-        update_inventory_task = ScrapInventory(self.__steam_user)
-        update_inventory_task.full_update()
+        self.__steam_user.update_inventory()
 
         game_ids = SteamInventory.get_game_ids_with_booster_packs_to_be_opened(
             n_of_games=games_quantity,
@@ -39,7 +37,7 @@ class OpenGameBoosterPacks:
                 for index2, asset_id in enumerate(asset_ids):
                     self.__post_request(asset_id)
                     GenericUI.progress_completed(progress=index2+1, total=len(asset_ids), text=progress_text)
-                booster_pack_not_opened_asset_ids = update_inventory_task.after_booster_pack_opened(game['market_id'])
+                booster_pack_not_opened_asset_ids = self.__steam_user.update_inventory_after_booster_pack(game_market_id=game['market_id'])
                 asset_ids = booster_pack_not_opened_asset_ids
 
     def __post_request(self, asset_id: str) -> (int, Union[requests.Response, str]):

@@ -1,13 +1,11 @@
 import sys
 
 from utils.Singleton import Singleton
-from steam_user.SteamUser import SteamUser
 from user_interfaces.MainUI import MainUI
 from controller.SteamUserController import SteamUserController
 from controller.SteamTraderController import SteamTraderController
-from scrap_steam_services import (
-    ScrapInventory, ScrapProfileBadgesPage, ScrapProfileGameCardsPage
-)
+from steam_user.SteamUser import SteamUser
+from scrap_steam_services import ScrapProfileBadgesPage, ScrapProfileGameCardsPage
 
 
 class MainController(metaclass=Singleton):
@@ -47,6 +45,4 @@ class MainController(metaclass=Singleton):
 
     @staticmethod
     def update_user_inventory(steam_user: SteamUser) -> None:
-        ScrapInventory(
-            steam_user=steam_user,
-        ).full_update()
+        steam_user.update_inventory()

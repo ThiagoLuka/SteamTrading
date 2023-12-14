@@ -5,7 +5,7 @@ from queue import Queue, Empty
 from user_interfaces.GenericUI import GenericUI
 from user_interfaces.SteamTraderUI import SteamTraderUI
 from scrap_steam_services import (
-    OpenGameBoosterPacks, ScrapInventory, ScrapMarketItemPage, ScrapMarketMainPage
+    OpenGameBoosterPacks, ScrapMarketItemPage, ScrapMarketMainPage
 )
 from data_models import PersistToDB
 from steam_user.SteamUser import SteamUser
@@ -51,9 +51,7 @@ class SteamTraderController:
 
     def overview_marketable_cards(self) -> None:
         if GenericUI.update_inventory():
-            ScrapInventory(
-                steam_user=self.__user,
-            ).full_update()
+            self.__user.update_inventory()
         summary_qtd_by_game = self.__user.inventory.summary_qtd(by='game', marketable=True)
         game_id_and_name = SteamGamesNew(game_ids=list(summary_qtd_by_game.keys())).id_name_dict()
         summary_qtd_by_game = {game_id_and_name[game_id]: qtd for game_id, qtd in summary_qtd_by_game.items()}
