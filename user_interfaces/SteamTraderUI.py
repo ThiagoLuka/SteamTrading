@@ -18,19 +18,17 @@ class SteamTraderUI:
         return InputValidation.int_within_range(0, 6)
 
     @staticmethod
-    def overview_marketable_cards(data: dict, inv_total_size: int) -> None:
+    def overview_marketable_cards(summary: dict, inv_total_size: int) -> None:
         min_cards_text = "Don't show games with less than x cards: "
         minimum_cards = InputValidation.int_within_range(0, 100, min_cards_text)
-        total_marketable_cards = 0
         total_shown = 0
         print('\nCards ||     Game')
-        for game_name, cards_qtd in data.items():
-            total_marketable_cards += cards_qtd
-            if cards_qtd >= minimum_cards:
-                total_shown += cards_qtd
-                print(f'{cards_qtd:>4}  ||  {game_name}')
+        for game_name, items_qtd in summary.items():
+            if items_qtd >= minimum_cards:
+                total_shown += items_qtd
+                print(f'{items_qtd:>4}  ||  {game_name}')
         print(f'\nCards displayed:  {total_shown:>5}')
-        print(f'Total marketable: {total_marketable_cards:>5}')
+        print(f'Total marketable: {sum(summary.values()):>5}')
         print(f'Inventory size:   {inv_total_size:>5}')
 
     @staticmethod

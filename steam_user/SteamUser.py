@@ -1,5 +1,6 @@
 from steam_web_crawler import SteamWebCrawler
 from data_models.SteamBadges import SteamBadges
+from data_models.SteamInventoryNew import SteamInventoryNew
 from data_models.query.SteamUserRepository import SteamUserRepository
 
 
@@ -14,6 +15,7 @@ class SteamUser:
             self.__steam_alias,
             user_data,  # user_data should hold user cookies and send them to crawler, at least for now
         )
+        self.__inventory = SteamInventoryNew(user_id=self.user_id)
         self.__steam_level: int = SteamBadges.get_user_level(self.__user_id)
 
     @property
@@ -29,12 +31,16 @@ class SteamUser:
         return self.__steam_alias
 
     @property
-    def steam_level(self) -> int:
-        return self.__steam_level
-
-    @property
     def web_crawler(self) -> SteamWebCrawler:
         return self.__crawler
+
+    @property
+    def inventory(self) -> SteamInventoryNew:
+        return self.__inventory
+
+    @property
+    def steam_level(self) -> int:
+        return self.__steam_level
 
     def log_in(self, login_data: dict) -> None:
         pass

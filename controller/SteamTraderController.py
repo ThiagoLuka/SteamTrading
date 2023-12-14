@@ -10,6 +10,7 @@ from scrap_steam_services import (
 from data_models import PersistToDB
 from steam_user.SteamUser import SteamUser
 from data_models.SteamGames import SteamGames
+from data_models.SteamGamesNew import SteamGamesNew
 from data_models.ItemsSteam import ItemsSteam
 from data_models.BuyOrders import BuyOrders
 from data_models.SteamInventory import SteamInventory
@@ -53,9 +54,11 @@ class SteamTraderController:
             ScrapInventory(
                 steam_user=self.__user,
             ).full_update()
-        data_for_overview = SteamInventory.get_overview_marketable_cards(self.__user_id)
-        inventory_size = SteamInventory.get_current_inventory_size(self.__user_id)
-        SteamTraderUI.overview_marketable_cards(data_for_overview, inventory_size)
+        summary_qtd_by_game = self.__user.inventory.summary_qtd(by='game', marketable=True)
+        game_id_and_name = SteamGamesNew(game_ids=list(summary_qtd_by_game.keys())).id_name_dict()
+        summary_qtd_by_game = {game_id_and_name[game_id]: qtd for game_id, qtd in summary_qtd_by_game.items()}
+        inventory_size = self.__user.inventory.size()
+        SteamTraderUI.overview_marketable_cards(summary=summary_qtd_by_game, inv_total_size=inventory_size)
 
     def update_buy_orders(self) -> None:
         n_games_to_update = SteamTraderUI.update_buy_orders_prompt_message()
