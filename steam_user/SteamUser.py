@@ -1,7 +1,7 @@
 from scrap_steam_services.ScrapInventory import ScrapInventory
-from steam_web_crawler import SteamWebCrawler
+from steam_user.steam_web_crawler import SteamWebCrawler
+from steam_user.SteamInventory import SteamInventory
 from data_models.SteamBadges import SteamBadges
-from data_models.SteamInventoryNew import SteamInventoryNew
 from data_models.query.SteamUserRepository import SteamUserRepository
 
 
@@ -16,7 +16,7 @@ class SteamUser:
             self.__steam_alias,
             user_data,  # user_data should hold user cookies and send them to crawler, at least for now
         )
-        self.__inventory = SteamInventoryNew(user_id=self.user_id)
+        self.__inventory = SteamInventory(user_id=self.user_id)
         self.__steam_level: int = SteamBadges.get_user_level(self.__user_id)
 
     @property
@@ -36,7 +36,7 @@ class SteamUser:
         return self.__crawler
 
     @property
-    def inventory(self) -> SteamInventoryNew:
+    def inventory(self) -> SteamInventory:
         return self.__inventory
 
     @property

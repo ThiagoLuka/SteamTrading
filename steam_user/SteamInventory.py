@@ -3,7 +3,7 @@ import pandas as pd
 from data_models.query.SteamInventoryRepository import SteamInventoryRepository
 
 
-class SteamInventoryNew:
+class SteamInventory:
 
     def __init__(self, user_id: int):
         self._user_id = user_id
