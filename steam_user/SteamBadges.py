@@ -1,26 +1,13 @@
 from data_models.query.SteamBadgesRepository import SteamBadgesRepository
-from data_models.PandasDataModel import PandasDataModel
-from data_models.MathUtils import MathUtils
+from utils.MathUtils import MathUtils
 
 
-class SteamBadges(
-    PandasDataModel,
-    tables={
-        'game_badges',
-        'pure_badges',
-        'user_badges',
-    },
-    columns={
-        'default': ('id', 'name', 'level', 'experience', 'foil', 'game_id', 'pure_badge_page_id', 'unlocked_at'),
-        'game_badges': ('id', 'game_id', 'name', 'level', 'foil'),
-        'pure_badges': ('id', 'page_id', 'name'),
-        'user_badges': ('id', 'user_id', 'game_badge_id', 'pure_badge_id', 'experience', 'unlocked_at', 'active'),
-    },
-    repository=SteamBadgesRepository
-):
+class SteamBadges:
 
-    def __init__(self, table: str = 'default', **data):
-        super().__init__(table, **data)
+    def __init__(self):
+        # it won't have a state for now because the only functionality implemented is quite simple
+        # it might have spin off another class more related to badges per se, not badges that a user have
+        pass
 
     @staticmethod
     def get_user_level(user_id: int) -> int:

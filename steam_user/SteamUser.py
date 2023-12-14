@@ -1,7 +1,7 @@
 from scrap_steam_services.ScrapInventory import ScrapInventory
 from steam_user.steam_web_crawler import SteamWebCrawler
 from steam_user.SteamInventory import SteamInventory
-from data_models.SteamBadges import SteamBadges
+from steam_user.SteamBadges import SteamBadges
 from data_models.query.SteamUserRepository import SteamUserRepository
 
 
