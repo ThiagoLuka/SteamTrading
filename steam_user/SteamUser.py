@@ -1,4 +1,4 @@
-from scrap_steam_services.ScrapInventory import ScrapInventory
+from scrap_steam_services import ScrapInventory, OpenGameBoosterPacks
 from steam_user.steam_web_crawler import SteamWebCrawler
 from steam_user.SteamInventory import SteamInventory
 from steam_user.SteamBadges import SteamBadges
@@ -54,6 +54,9 @@ class SteamUser:
         bps_left = ScrapInventory(steam_user=self).after_booster_pack_opened(game_market_id=game_market_id)
         self.__inventory.reload_current()
         return bps_left
+
+    def open_booster_packs(self, games_quantity: int) -> None:
+        OpenGameBoosterPacks(steam_user=self).run(games_quantity=games_quantity)
 
     def create_sell_listing(self, asset_id: str, price: int) -> None:
         status, result = self.__crawler.interact(

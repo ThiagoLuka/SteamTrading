@@ -4,9 +4,7 @@ from queue import Queue, Empty
 
 from user_interfaces.GenericUI import GenericUI
 from user_interfaces.SteamTraderUI import SteamTraderUI
-from scrap_steam_services import (
-    OpenGameBoosterPacks, ScrapMarketItemPage, ScrapMarketMainPage
-)
+from scrap_steam_services import ScrapMarketItemPage, ScrapMarketMainPage
 from data_models import PersistToDB
 from steam_user.SteamUser import SteamUser
 from data_models.SteamGames import SteamGames
@@ -140,9 +138,7 @@ class SteamTraderController:
 
     def open_booster_packs(self) -> None:
         games_quantity = SteamTraderUI.open_booster_packs()
-        OpenGameBoosterPacks(
-            steam_user=self.__user
-        ).run(games_quantity=games_quantity)
+        self.__user.open_booster_packs(games_quantity=games_quantity)
 
     def create_sell_listings(self) -> None:
         n_games_to_update = SteamTraderUI.sell_cards_prompt_message()
