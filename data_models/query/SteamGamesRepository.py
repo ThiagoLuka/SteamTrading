@@ -17,12 +17,15 @@ class SteamGamesRepository:
             , g.name
             , g.market_id
             , g.has_trading_cards
+            , is2.id AS item_id
             , is2.name AS item_name
+            , ist.name AS steam_item_type
             , is2.market_url_name AS item_market_url_name
             , itc.set_number
         FROM public.games g
         LEFT JOIN public.items_steam is2 ON is2.game_id = g.id
         LEFT JOIN public.item_trading_cards itc ON itc.item_steam_id = is2.id
+        LEFT JOIN public.item_steam_types ist ON ist.id = is2.item_steam_type_id
         WHERE
             g.id IN ({', '.join(ids)});
         """

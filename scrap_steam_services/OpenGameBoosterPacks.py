@@ -3,8 +3,7 @@ from typing import Union, TYPE_CHECKING
 import requests
 
 from user_interfaces.GenericUI import GenericUI
-from data_models.SteamInventory import SteamInventory
-from data_models.SteamGames import SteamGames
+from data_models.SteamGamesNew import SteamGamesNew
 
 if TYPE_CHECKING:
     from steam_user.SteamUser import SteamUser
@@ -18,27 +17,24 @@ class OpenGameBoosterPacks:
     def run(self, games_quantity: int) -> None:
         self.__steam_user.update_inventory()
 
-        game_ids = SteamInventory.get_game_ids_with_booster_packs_to_be_opened(
-            n_of_games=games_quantity,
-            user_id=self.__steam_user.user_id
-        )
-        games = SteamGames.get_all_by_id(game_ids)
+        inv_game_ids: list[int] = self.__steam_user.inventory.get_all_game_ids()
+        games = SteamGamesNew(inv_game_ids, with_items=True)
+        bp_item_ids: list[int] = games.get_booster_pack_item_ids()
+        steam_asset_ids: dict[tuple[int, int], list] = self.__steam_user.inventory.get_steam_asset_ids_by_item_ids(item_ids=bp_item_ids)
 
-        for index, game in enumerate(games):
-            print(f"{index+1} - {game['name']}")
-            asset_ids: list = SteamInventory.get_booster_pack_assets_id(
-                user_id=self.__steam_user.user_id,
-                game_id=game['id']
-            )
-
-            progress_text = 'Opening booster packs'
-            GenericUI.progress_completed(progress=0, total=len(asset_ids), text=progress_text)
-            while asset_ids:
-                for index2, asset_id in enumerate(asset_ids):
+        for index, assets_info in enumerate(steam_asset_ids.items()):
+            game_id, item_id = assets_info[0]
+            bp_assets = assets_info[1]
+            if index >= games_quantity:
+                break
+            progress_text = f"{index+1:02d} - Opening booster packs: {games.name(game_id=game_id)}"
+            GenericUI.progress_completed(progress=0, total=len(bp_assets), text=progress_text)
+            while bp_assets:
+                for index2, asset_id in enumerate(bp_assets):
                     self.__post_request(asset_id)
-                    GenericUI.progress_completed(progress=index2+1, total=len(asset_ids), text=progress_text)
-                booster_pack_not_opened_asset_ids = self.__steam_user.update_inventory_after_booster_pack(game_market_id=game['market_id'])
-                asset_ids = booster_pack_not_opened_asset_ids
+                    GenericUI.progress_completed(progress=index2+1, total=len(bp_assets), text=progress_text)
+                bps_not_opened = self.__steam_user.update_inventory_after_booster_pack(game_market_id=games.market_id(game_id=game_id))
+                bp_assets = bps_not_opened
 
     def __post_request(self, asset_id: str) -> (int, Union[requests.Response, str]):
         custom_status_code, response = self.__steam_user.web_crawler.interact(
