@@ -5,6 +5,7 @@ from user_interfaces.MainUI import MainUI
 from controller.SteamUserController import SteamUserController
 from controller.SteamTraderController import SteamTraderController
 from steam_user.SteamUser import SteamUser
+from steam_user_trader.SteamUserTrader import SteamUserTrader
 from scrap_steam_services import ScrapProfileBadgesPage, ScrapProfileGameCardsPage
 
 
@@ -28,7 +29,8 @@ class MainController(metaclass=Singleton):
             if command == 3:
                 self.update_user_inventory(steam_user=self._steam_user)
             if command == 4:
-                SteamTraderController(self._steam_user).run_ui()
+                steam_user_trader = SteamUserTrader.from_steam_user(steam_user=self._steam_user)
+                SteamTraderController(steam_user_trader=steam_user_trader).run_ui()
 
             if command == 0:
                 MainUI.goodbye()

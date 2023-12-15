@@ -8,6 +8,7 @@ from data_models.query.SteamUserRepository import SteamUserRepository
 class SteamUser:
 
     def __init__(self, user_data: dict):
+        self.__user_data = user_data
         self.__steam_id: str = user_data['steam_id']
         self.__steam_alias: str = user_data['steam_alias']
         self.__user_id: int = self.__save_user()
