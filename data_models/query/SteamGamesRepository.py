@@ -1,3 +1,4 @@
+from data_models.QueryBuilderPG import QueryBuilderPG
 from data_models.db.DBController import DBController
 
 
@@ -42,6 +43,29 @@ class SteamGamesRepository:
         WHERE
             id IN ({', '.join(ids)});
         """
+
+    @staticmethod
+    def get_has_trading_cards_but_none_found() -> list[tuple]:
+        query = """
+            SELECT DISTINCT g.id AS id
+            FROM games g
+            LEFT JOIN item_trading_cards itc ON itc.game_id = g.id
+            WHERE
+                has_trading_cards AND set_numberIS NULL;
+        """
+        result = DBController.execute(query=query, get_result=True)
+        return result
+
+    @staticmethod
+    def get_item_type_id(type_name: str) -> int:
+        type_name = QueryBuilderPG.sanitize_string(type_name)
+        query = f"""
+            SELECT id
+            FROM item_steam_types
+            WHERE name = '{type_name}';
+        """
+        result = DBController.execute(query=query, get_result=True)
+        return result[0][0]
 
     @staticmethod
     def get_all(columns: list) -> list[tuple]:

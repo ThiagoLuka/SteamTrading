@@ -9,11 +9,26 @@ class SteamGamesNew:
         self._df = pd.DataFrame()
         self._df_items = pd.DataFrame()
         self._with_items: bool = with_items
+        if not game_ids:
+            return
         self._load_data(game_ids=game_ids, with_items=with_items)
+
+    @classmethod
+    def has_cards_but_none_found(cls):
+        game_ids = SteamGamesRepository.get_has_trading_cards_but_none_found()
+        return cls(game_ids=game_ids)
 
     @property
     def df(self) -> pd.DataFrame:
         return self._df.copy()
+
+    @property
+    def ids(self) -> list[int]:
+        return list(self._df['id'])
+
+    @property
+    def empty(self) -> bool:
+        return self._df.empty
 
     def name(self, game_id: int) -> str:
         return self.df.loc[self.df['id'] == game_id, 'name'].iloc[0]
@@ -28,7 +43,7 @@ class SteamGamesNew:
 
     def get_booster_pack_item_ids(self) -> list[int]:
         if not self._with_items:
-            self._load_data(game_ids=list(self.df['id']), with_items=True)
+            self._load_data(game_ids=self.ids, with_items=True)
         df_filtered = self._df_items[self._df_items['steam_item_type'] == 'Booster Pack']
         item_ids = list(df_filtered['item_id'].drop_duplicates())
         return item_ids
@@ -44,3 +59,7 @@ class SteamGamesNew:
             return
         self._df_items = pd.DataFrame()
         self._df = pd.DataFrame(db_data, columns=columns)
+
+    @staticmethod
+    def get_item_type_id(type_name: str) -> int:
+        return SteamGamesRepository.get_item_type_id(type_name=type_name)
