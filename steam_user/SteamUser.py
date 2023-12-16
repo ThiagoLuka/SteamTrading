@@ -1,4 +1,6 @@
-from scrap_steam_services import ScrapInventory, OpenGameBoosterPacks
+from scrap_steam_services import (
+    ScrapInventory, OpenGameBoosterPacks, ScrapProfileBadgesPage, ScrapProfileGameCardsPage
+)
 from steam_user.steam_web_crawler import SteamWebCrawler
 from steam_user.SteamInventory import SteamInventory
 from steam_user.SteamBadges import SteamBadges
@@ -18,7 +20,7 @@ class SteamUser:
             user_data,  # user_data should hold user cookies and send them to crawler, at least for now
         )
         self.__inventory = SteamInventory(user_id=self.user_id)
-        self.__steam_level: int = SteamBadges.get_user_level(self.__user_id)
+        self.__steam_level = SteamBadges.get_user_level(self.__user_id)
 
     @property
     def user_id(self) -> int:
@@ -55,6 +57,11 @@ class SteamUser:
         bps_left = ScrapInventory(steam_user=self).after_booster_pack_opened(game_market_id=game_market_id)
         self.__inventory.reload_current()
         return bps_left
+
+    def update_badges(self) -> None:
+        ScrapProfileBadgesPage(steam_user=self).get_profile_badges()
+        ScrapProfileGameCardsPage(steam_user=self).get_new_trading_cards()
+        self.__steam_level = SteamBadges.get_user_level(self.__user_id)
 
     def open_booster_packs(self, games_quantity: int) -> None:
         OpenGameBoosterPacks(steam_user=self).run(games_quantity=games_quantity)
