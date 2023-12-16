@@ -23,7 +23,7 @@ class ScrapMarketItemPage:
             progress_text = f"{index+1:02d} - {games.name(game_id=game_id)}"
             GenericUI.progress_completed(progress=0, total=1, text=progress_text)
             item_keys = ['item_id', 'item_name', 'item_market_url_name']
-            items = games.get_trading_cards_and_booster_pack(game_id=game_id, item_keys=item_keys)
+            items = games.get_trading_cards_and_booster_pack(game_id=game_id, item_keys=item_keys, foil=False)
             for index2, item in enumerate(items):
                 retries_left = self.__retries
                 while True:

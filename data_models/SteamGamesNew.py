@@ -48,12 +48,14 @@ class SteamGamesNew:
         item_ids = list(df_filtered['item_id'].drop_duplicates())
         return item_ids
 
-    def get_trading_cards_and_booster_pack(self, game_id: int, item_keys: list = None, foil: bool = False) -> list[dict]:
+    def get_trading_cards_and_booster_pack(self, game_id: int, item_keys: list = None, foil: bool = None) -> list[dict]:
+        """:return [{item_key: value, item_key: value}, {...}]"""
         df = self._df_items[self._df_items['id'] == game_id]
         if item_keys is None:
             item_keys = ['item_id', 'item_name', 'item_market_url_name', 'set_number']
         tcs = df[df['steam_item_type'] == 'Trading Card'].sort_values(by='set_number')
-        tcs = tcs[tcs['foil'] == foil]
+        if foil is not None:
+            tcs = tcs[tcs['foil'] == foil]
         bp = df[df['steam_item_type'] == 'Booster Pack']
         tcs_list = tcs[item_keys].to_dict('records')
         bp_list = bp[item_keys].to_dict('records')

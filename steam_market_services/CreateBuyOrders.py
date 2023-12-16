@@ -32,7 +32,7 @@ class CreateBuyOrders:
             item_ids = game_and_item_ids_tuple[1]
             game_name = games.name(game_id=game_id)
             game_market_id = games.market_id(game_id=game_id)
-            items = games.get_trading_cards_and_booster_pack(game_id=game_id)
+            items = games.get_trading_cards_and_booster_pack(game_id=game_id, foil=False)
             buy_orders_history = self._steam_trader.buy_orders.get_recent_history(game_id=game_id)
 
             SteamTraderUI.buy_orders_header(game_name=game_name, index=idx)
@@ -55,7 +55,7 @@ class CreateBuyOrders:
     def _first_buy_orders(self, game_id: int):
         game = SteamGamesNew(game_ids=[game_id], with_items=True)
         game_market_id = game.market_id(game_id=game_id)
-        items = game.get_trading_cards_and_booster_pack(game_id=game_id)
+        items = game.get_trading_cards_and_booster_pack(game_id=game_id, foil=False)
         for index, steam_item in enumerate(items):
             SteamTraderUI.show_item_name(item_name=steam_item['item_name'], set_number=steam_item['set_number'])
             self._create_item_buy_order(
