@@ -21,6 +21,7 @@ class SteamUserTrader(SteamUser):
 
     def update_buy_orders(self, game_ids: list[int]) -> None:
         ScrapMarketItemPage(steam_user=self).update_games_buy_orders(game_ids=game_ids)
+        self.buy_orders.reload_current()
 
     def update_sell_listings(self) -> None:
         ScrapMarketMainPage(steam_user=self).get_sell_listings()
