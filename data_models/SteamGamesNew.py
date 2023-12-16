@@ -48,11 +48,12 @@ class SteamGamesNew:
         item_ids = list(df_filtered['item_id'].drop_duplicates())
         return item_ids
 
-    def get_trading_cards_and_booster_pack(self, game_id: int, item_keys: list = None) -> list[dict]:
+    def get_trading_cards_and_booster_pack(self, game_id: int, item_keys: list = None, foil: bool = False) -> list[dict]:
         df = self._df_items[self._df_items['id'] == game_id]
         if item_keys is None:
             item_keys = ['item_id', 'item_name', 'item_market_url_name', 'set_number']
         tcs = df[df['steam_item_type'] == 'Trading Card'].sort_values(by='set_number')
+        tcs = tcs[tcs['foil'] == foil]
         bp = df[df['steam_item_type'] == 'Booster Pack']
         tcs_list = tcs[item_keys].to_dict('records')
         bp_list = bp[item_keys].to_dict('records')
@@ -61,7 +62,7 @@ class SteamGamesNew:
     def _load_data(self, game_ids: list, with_items: bool) -> None:
         self._with_items = with_items
         columns = ['id', 'name', 'market_id', 'has_trading_cards']
-        item_cols = ['item_id', 'item_name', 'steam_item_type', 'item_market_url_name', 'set_number']
+        item_cols = ['item_id', 'item_name', 'steam_item_type', 'item_market_url_name', 'set_number', 'foil']
         db_data = SteamGamesRepository().get_all_by_ids_new(ids=game_ids, with_items=with_items)
         if with_items:
             self._df_items = pd.DataFrame(db_data, columns=columns + item_cols)

@@ -23,6 +23,7 @@ class SteamGamesRepository:
             , ist.name AS steam_item_type
             , is2.market_url_name AS item_market_url_name
             , itc.set_number
+            , itc.foil
         FROM public.games g
         LEFT JOIN public.items_steam is2 ON is2.game_id = g.id
         LEFT JOIN public.item_trading_cards itc ON itc.item_steam_id = is2.id
