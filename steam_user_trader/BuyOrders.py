@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pandas as pd
 
 from data_models.query.BuyOrdersRepository import BuyOrdersRepository
@@ -28,3 +30,50 @@ class BuyOrders:
         df_aux = self.df.sort_values(by='updated_at')
         df_aux.drop_duplicates('game_id', inplace=True)
         return list(df_aux['game_id'].iloc[0:quantity])
+
+    def get_game_and_item_ids_without_active(self, item_quantity: int) -> dict[int, list]:
+        """:return {game_id: [item_id_1, item_id_2]}"""
+        actives = self.df
+        inactives = self._df_most_recent_inactive.copy()
+        actives['has_active'] = True
+        inactives = pd.merge(inactives, actives[['item_id', 'has_active']], how='left')
+        inactives_without_actives = inactives[inactives['has_active'] != True]
+        df = inactives_without_actives.drop(columns='has_active').copy()
+
+        df.sort_values(by='removed_at', inplace=True)
+        df.drop_duplicates(subset=['game_id', 'item_id'], keep='last', inplace=True)
+        df.reset_index(drop=True, inplace=True)
+        rows = df.loc[0:item_quantity-1, ['game_id', 'item_id']].to_dict('records')
+
+        result = {}
+        for item in rows:
+            if item['game_id'] not in result.keys():
+                result[item['game_id']] = []
+            result[item['game_id']].append(item['item_id'])
+        return result
+
+    def get_recent_history(self, game_id: int) -> dict:
+        """:return {
+            item_id: [{keys: 'price', 'qtd_start', 'qtd_current', 'created_at', 'removed_at', 'days_active'}]
+        }"""
+        result = {}
+
+        df = self.df
+        df = df[df['game_id'] == game_id].copy()
+        df['days_active'] = (datetime.today() - df['created_at']).dt.days
+        df = df[['item_id', 'price', 'qtd_start', 'qtd_current', 'created_at', 'removed_at', 'days_active']].copy()
+        for item in df.to_dict('records'):
+            item_id = item.pop('item_id')
+            result[item_id] = [item]
+
+        df = self._df_most_recent_inactive.copy()
+        df = df[df['game_id'] == game_id].copy()
+        df['days_active'] = (df['removed_at'] - df['created_at']).dt.days
+        df = df[['item_id', 'price', 'qtd_start', 'qtd_current', 'created_at', 'removed_at', 'days_active']].copy()
+        for item in df.to_dict('records'):
+            item_id = item.pop('item_id')
+            if item_id not in list(result.keys()):
+                result[item_id] = []
+            result[item_id].append(item)
+
+        return result

@@ -40,8 +40,8 @@ class SteamTraderUI:
         return InputValidation.yes_or_no('First buy order of the game?')
 
     @staticmethod
-    def how_many_games_buy_orders() -> int:
-        return InputValidation.int_within_range(0, 100, 'For how many games do you wish to create new buy orders? ')
+    def create_buy_orders_prompt_message() -> int:
+        return InputValidation.int_within_range(0, 100, 'How many items do you wish to update? ')
 
     @staticmethod
     def sell_cards_prompt_message() -> int:
@@ -66,23 +66,46 @@ class SteamTraderUI:
         return InputValidation.int_within_range(5, 100, f' {item_number}-{item_name}: ')
 
     @staticmethod
-    def set_buy_order_for_item(item_name: str, item_number: int) -> tuple[int, int]:
-        print(f' {item_number} - {item_name} ')
+    def set_buy_order_for_item() -> tuple[int, int]:
         price = InputValidation.int_within_range(0, 150, f' Price: ')
         qtd = InputValidation.int_within_range(50, 200, f' Quantity: ')
         return price, qtd
 
     @staticmethod
+    def show_item_name(item_name: str, set_number: int) -> None:
+        set_number = int(set_number) if str(set_number) != 'nan' else ''
+        print(f" {set_number:>2}-{item_name}")
+
+    @staticmethod
     def create_buy_order_failed() -> None:
-        print('Something went wrong with the creation of the buy order')
+        print('\nSomething went wrong with the creation of the buy order')
 
     @staticmethod
-    def set_buy_orders_header() -> None:
-        print('\nSetting buy orders')
+    def buy_orders_header(game_name: str, index: int) -> None:
+        print(f'\n {index+1:>2}-Buy orders from: {game_name}')
 
     @staticmethod
-    def buy_orders_header(game_name: str) -> None:
-        print(f'\n Buy orders from: {game_name}')
+    def show_game_recent_buy_orders(items: list[dict], buy_orders_history: dict) -> None:
+        for item in items:
+            item_id = item['item_id']
+            buy_order = buy_orders_history[item_id][0]
+            SteamTraderUI.show_single_buy_order(item=item, buy_order=buy_order)
+
+    @staticmethod
+    def show_item_all_buy_orders(item: dict, buy_orders: list[dict]) -> None:
+        print(f"\n {item['item_name']}")
+        for buy_order in buy_orders:
+            SteamTraderUI.show_single_buy_order(item=item, buy_order=buy_order, show_name=False)
+
+    @staticmethod
+    def show_single_buy_order(item: dict, buy_order: dict, show_name: bool = True) -> None:
+        item_name = item['item_name']
+        set_number = int(item['set_number']) if str(item['set_number']) != 'nan' else ''
+        qtd = buy_order['qtd_current']
+        price = buy_order['price']
+        created_at = buy_order['created_at'].date()
+        name = f"{set_number:>2}-{item_name}"
+        print(f" {created_at} - {qtd:>3} @ R$ {price / 100:>5.2f} {name if show_name else ''}")
 
     @staticmethod
     def show_buy_order(qtd: int, price: int, item_name: str) -> None:
