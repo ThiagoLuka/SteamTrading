@@ -4,7 +4,6 @@ from queue import Queue, Empty
 
 from user_interfaces.GenericUI import GenericUI
 from user_interfaces.SteamTraderUI import SteamTraderUI
-from scrap_steam_services import ScrapMarketItemPage
 from data_models import PersistToDB
 from steam_user_trader.SteamUserTrader import SteamUserTrader
 from data_models.SteamGames import SteamGames
@@ -57,23 +56,8 @@ class SteamTraderController:
 
     def update_buy_orders(self) -> None:
         n_games_to_update = SteamTraderUI.update_buy_orders_prompt_message()
-        while n_games_to_update > 0:
-            n_games_to_update -= 1
-            game_id: list[str] = BuyOrders.get_game_ids_with_most_outdated_orders(1, self._steam_trader.user_id)
-            game = SteamGames.get_all_by_id(game_id)
-            items = ItemsSteam.get_booster_pack_and_cards_market_url(game.id, booster_pack_last=True)
-            items_raw = [{
-                'id': item.df.loc[0, 'id'],
-                'name': item.df.loc[0, 'name'],
-                'market_url_name': item.df.loc[0, 'market_url_name'],
-            } for item in items]
-            ScrapMarketItemPage(
-                steam_user=self._steam_trader,
-                game_name=game.name,
-                game_market_id=game.market_id,
-                items=items_raw
-            ).get_game_buy_orders()
-            time.sleep(10)
+        game_ids = self._steam_trader.buy_orders.get_game_ids_with_most_outdated_orders(quantity=n_games_to_update)
+        self._steam_trader.update_buy_orders(game_ids=game_ids)
 
     def update_sell_listings(self) -> None:
         self._steam_trader.update_sell_listings()
