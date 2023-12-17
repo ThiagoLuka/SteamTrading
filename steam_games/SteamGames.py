@@ -3,7 +3,7 @@ import pandas as pd
 from data_models.query.SteamGamesRepository import SteamGamesRepository
 
 
-class SteamGamesNew:
+class SteamGames:
 
     def __init__(self, game_ids: list = None, with_items: bool = False):
         self._df = pd.DataFrame()

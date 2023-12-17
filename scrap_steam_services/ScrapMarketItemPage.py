@@ -4,7 +4,7 @@ import time
 
 from user_interfaces.GenericUI import GenericUI
 from scrap_steam_services.web_page_cleaning import MarketItemPageCleaner
-from data_models.SteamGamesNew import SteamGamesNew
+from steam_games import SteamGames
 from data_models import PersistToDB
 
 if TYPE_CHECKING:
@@ -18,7 +18,7 @@ class ScrapMarketItemPage:
         self.__retries = 4
 
     def update_games_buy_orders(self, game_ids: list[int]) -> None:
-        games = SteamGamesNew(game_ids=game_ids, with_items=True)
+        games = SteamGames(game_ids=game_ids, with_items=True)
         for index, game_id in enumerate(game_ids):
             progress_text = f"{index+1:02d} - {games.name(game_id=game_id)}"
             GenericUI.progress_completed(progress=0, total=1, text=progress_text)

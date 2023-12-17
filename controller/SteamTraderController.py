@@ -1,7 +1,7 @@
 from user_interfaces.GenericUI import GenericUI
 from user_interfaces.SteamTraderUI import SteamTraderUI
 from steam_user_trader.SteamUserTrader import SteamUserTrader
-from data_models.SteamGamesNew import SteamGamesNew
+from steam_games import SteamGames
 
 
 class SteamTraderController:
@@ -35,7 +35,7 @@ class SteamTraderController:
         if GenericUI.update_inventory():
             self._steam_trader.update_inventory()
         summary_qtd_by_game = self._steam_trader.inventory.summary_qtd(by='game', marketable=True)
-        game_id_and_name = SteamGamesNew(game_ids=list(summary_qtd_by_game.keys())).id_name_dict()
+        game_id_and_name = SteamGames(game_ids=list(summary_qtd_by_game.keys())).id_name_dict()
         summary_qtd_by_game = {game_id_and_name[game_id]: qtd for game_id, qtd in summary_qtd_by_game.items()}
         inventory_size = self._steam_trader.inventory.size()
         SteamTraderUI.overview_marketable_cards(summary=summary_qtd_by_game, inv_total_size=inventory_size)

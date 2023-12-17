@@ -3,7 +3,7 @@ from typing import Union, TYPE_CHECKING
 import requests
 
 from user_interfaces.GenericUI import GenericUI
-from data_models.SteamGamesNew import SteamGamesNew
+from steam_games import SteamGames
 
 if TYPE_CHECKING:
     from steam_user.SteamUser import SteamUser
@@ -18,7 +18,7 @@ class OpenGameBoosterPacks:
         self.__steam_user.update_inventory()
 
         inv_game_ids: list[int] = self.__steam_user.inventory.get_all_game_ids()
-        games = SteamGamesNew(inv_game_ids, with_items=True)
+        games = SteamGames(inv_game_ids, with_items=True)
         bp_item_ids: list[int] = games.get_booster_pack_item_ids()
         steam_asset_ids: dict[tuple[int, int], list] = self.__steam_user.inventory.get_steam_asset_ids_by_item_ids(item_ids=bp_item_ids)
 

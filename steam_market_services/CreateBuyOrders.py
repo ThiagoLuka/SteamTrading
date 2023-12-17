@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from user_interfaces.GenericUI import GenericUI
 from user_interfaces.SteamTraderUI import SteamTraderUI
-from data_models.SteamGamesNew import SteamGamesNew
+from steam_games import SteamGames
 from data_models import PersistToDB
 
 if TYPE_CHECKING:
@@ -25,7 +25,7 @@ class CreateBuyOrders:
 
     def _replace_outdated_buy_orders(self, item_quantity: int):
         game_and_item_ids: dict = self._steam_trader.buy_orders.get_game_and_item_ids_without_active(item_quantity=item_quantity)
-        games = SteamGamesNew(game_ids=list(game_and_item_ids.keys()), with_items=True)
+        games = SteamGames(game_ids=list(game_and_item_ids.keys()), with_items=True)
 
         for idx, game_and_item_ids_tuple in enumerate(game_and_item_ids.items()):
             game_id = game_and_item_ids_tuple[0]
@@ -53,7 +53,7 @@ class CreateBuyOrders:
                     )
 
     def _first_buy_orders(self, game_id: int):
-        game = SteamGamesNew(game_ids=[game_id], with_items=True)
+        game = SteamGames(game_ids=[game_id], with_items=True)
         game_market_id = game.market_id(game_id=game_id)
         items = game.get_trading_cards_and_booster_pack(game_id=game_id, foil=False)
         for index, steam_item in enumerate(items):

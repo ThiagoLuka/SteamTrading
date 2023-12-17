@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 import time
 
 from user_interfaces.SteamTraderUI import SteamTraderUI
-from data_models.SteamGamesNew import SteamGamesNew
+from steam_games import SteamGames
 
 if TYPE_CHECKING:
     from steam_user_trader.SteamUserTrader import SteamUserTrader
@@ -21,7 +21,7 @@ class CreateSellListings:
             game_quantity=game_quantity,
             games_allowed=games_allowed,
         )
-        games = SteamGamesNew(game_ids=game_ids, with_items=True)
+        games = SteamGames(game_ids=game_ids, with_items=True)
         inventory_summary = self._steam_trader.inventory.summary_qtd(by='item', marketable=True)
 
         for idx, game_id in enumerate(game_ids):

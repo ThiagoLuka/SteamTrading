@@ -5,7 +5,7 @@ import requests
 from user_interfaces.GenericUI import GenericUI
 from scrap_steam_services import CheckMarketItemUrlName
 from scrap_steam_services.web_page_cleaning import ProfileGameCardsPageCleaner
-from data_models.SteamGamesNew import SteamGamesNew
+from steam_games import SteamGames
 from data_models import PersistToDB
 
 if TYPE_CHECKING:
@@ -18,7 +18,7 @@ class ScrapProfileGameCardsPage:
         self.__steam_user = steam_user
 
     def get_new_trading_cards(self) -> None:
-        games = SteamGamesNew.has_cards_but_none_found()
+        games = SteamGames.has_cards_but_none_found()
         if games.empty:
             return
 
