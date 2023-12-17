@@ -27,13 +27,26 @@ class SteamInventory:
     def get_all_game_ids(self) -> list[int]:
         return list(self.df['game_id'].drop_duplicates())
 
+    def get_asset_ids(self, item_id: int) -> list:
+        df = self.df[self.df['item_steam_id'] == item_id]
+        return list(df['steam_asset_id'])
+
+    def get_game_ids_with_marketable_items(self, game_quantity: int, games_allowed: list) -> list[int]:
+        df = self.df[self.df['marketable'] == True]
+        df.sort_values(by='created_at', inplace=True)
+        df.drop_duplicates(subset='game_id', inplace=True)
+        df = df[df['game_id'].isin(games_allowed)]
+        df.reset_index(drop=True, inplace=True)
+        return list(df.loc[0:game_quantity-1, 'game_id'])
+
     def summary_qtd(self, by: str = 'game', marketable: bool = False) -> dict:
         """:return {by: qtd}"""
         df = self.df
         if marketable:
             df = df[df['marketable']]
         summary_qtd = {
-            'game': dict(df.value_counts(subset='game_id'))
+            'game': dict(df.value_counts(subset='game_id')),
+            'item': dict(df.value_counts(subset='item_steam_id')),
         }.get(by, {})
         return summary_qtd
 

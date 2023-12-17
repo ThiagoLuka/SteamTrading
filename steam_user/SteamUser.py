@@ -65,6 +65,7 @@ class SteamUser:
 
     def open_booster_packs(self, games_quantity: int) -> None:
         OpenGameBoosterPacks(steam_user=self).run(games_quantity=games_quantity)
+        self.__inventory.reload_current()
 
     def create_sell_listing(self, asset_id: str, price: int) -> None:
         status, result = self.__crawler.interact(
@@ -83,6 +84,11 @@ class SteamUser:
             game_market_id=game_market_id,
             item_url_name=item_market_url_name,
         )
+
+    def get_games_allowed(self) -> list[int]:
+        db_result = SteamUserRepository.get_games_allowed(self.user_id)
+        result = [game_id_inside_tuple[0] for game_id_inside_tuple in db_result]
+        return result
 
     def __save_user(self) -> int:
         saved = SteamUserRepository.get_by_steam_id(self.__steam_id)

@@ -22,3 +22,13 @@ class SteamUserRepository:
         """
         result = DBController.execute(query=query, get_result=True)
         return result
+
+    @staticmethod
+    def get_games_allowed(user_id: int) -> list[tuple]:
+        query = f"""
+        SELECT game_id
+        FROM user_game_trade
+        WHERE user_id = '{user_id}';
+        """
+        result = DBController.execute(query=query, get_result=True)
+        return result

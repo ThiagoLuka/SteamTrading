@@ -52,18 +52,19 @@ class SteamTraderUI:
         return InputValidation.int_within_range(0, 50, 'How many games do you wish to open booster packs from? ')
 
     @staticmethod
-    def view_trading_cards_to_sell(cards: list) -> None:
+    def show_marketable_items_to_sell_summary(items: list, summary: dict) -> None:
         total_cards = 0
         print('\nItems to sell:')
         print('Cards ||     Name')
-        for name, qtd, idx in cards:
-            print(f'{qtd:>4}  ||  {idx}-{name}')
-            total_cards += qtd
+        for item_id, item_count in summary.items():
+            item = list(filter(lambda steam_item: steam_item['item_id'] == item_id, items))[0]
+            print(f"{item_count:>4}  || {item['item_name']}")
+            total_cards += item_count
         print(f'Total cards: {total_cards}')
 
     @staticmethod
-    def set_sell_price_for_item(item_name: str, item_number: int) -> int:
-        return InputValidation.int_within_range(5, 100, f' {item_number}-{item_name}: ')
+    def set_sell_price_for_item() -> int:
+        return InputValidation.int_within_range(5, 100, f' Price: ')
 
     @staticmethod
     def set_buy_order_for_item() -> tuple[int, int]:
@@ -92,7 +93,9 @@ class SteamTraderUI:
             SteamTraderUI.show_single_buy_order(item=item, buy_order=buy_order)
 
     @staticmethod
-    def show_item_all_buy_orders(item: dict, buy_orders: list[dict]) -> None:
+    def show_item_all_buy_orders(item: dict, buy_orders: list[dict], reverse: bool = False) -> None:
+        if reverse:
+            buy_orders.reverse()
         print(f"\n {item['item_name']}")
         for buy_order in buy_orders:
             SteamTraderUI.show_single_buy_order(item=item, buy_order=buy_order, show_name=False)
@@ -105,11 +108,4 @@ class SteamTraderUI:
         price = buy_order['price']
         created_at = buy_order['created_at'].date()
         name = f"{set_number:>2}-{item_name}"
-        print(f" {created_at} - {qtd:>3} @ R$ {price / 100:>5.2f} {name if show_name else ''}")
-
-    @staticmethod
-    def show_buy_order(qtd: int, price: int, item_name: str) -> None:
-        if qtd == 0:
-            print(f" {qtd:>3} @  R$ {price / 100:.2f}*  {item_name}")
-        else:
-            print(f" {qtd:>3} @  R$ {price / 100:.2f}   {item_name}")
+        print(f" {created_at} - {qtd:>3} @ R$ {price / 100:>5.2f}  {name if show_name else ''}")
