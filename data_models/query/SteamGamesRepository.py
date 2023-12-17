@@ -1,4 +1,4 @@
-from data_models.QueryBuilderPG import QueryBuilderPG
+from data_models.QueryUtils import QueryUtils
 from data_models.db.DBController import DBController
 
 
@@ -59,7 +59,7 @@ class SteamGamesRepository:
 
     @staticmethod
     def get_item_type_id(type_name: str) -> int:
-        type_name = QueryBuilderPG.sanitize_string(type_name)
+        type_name = QueryUtils.sanitize_string(type_name)
         query = f"""
             SELECT id
             FROM item_steam_types
@@ -67,34 +67,3 @@ class SteamGamesRepository:
         """
         result = DBController.execute(query=query, get_result=True)
         return result[0][0]
-
-    @staticmethod
-    def get_all(columns: list) -> list[tuple]:
-        query = f"""SELECT {', '.join(columns)} FROM games;"""
-        result = DBController.execute(query=query, get_result=True)
-        return result
-
-    @staticmethod
-    def get_all_with_trading_cards_not_registered() -> list[tuple]:
-        query = """
-            SELECT
-                DISTINCT games.id AS id,
-                games.name AS name,
-                market_id
-            FROM games
-            FULL OUTER JOIN item_trading_cards ON item_trading_cards.game_id = games.id
-            WHERE
-                has_trading_cards = True
-                AND item_trading_cards.id IS NULL;
-        """
-        result = DBController.execute(query=query, get_result=True)
-        return result
-
-    @staticmethod
-    def get_all_by_id(ids: list[str], columns: list):
-        query = f"""
-            SELECT {', '.join(columns)} FROM games
-            WHERE id IN ({', '.join(ids)});
-        """
-        result = DBController.execute(query=query, get_result=True)
-        return result

@@ -1,7 +1,6 @@
 import pandas as pd
 
-from data_models.PandasUtils import PandasUtils
-from data_models.QueryBuilderPG import QueryBuilderPG
+from data_models.QueryUtils import QueryUtils
 from data_models.db.DBController import DBController
 
 
@@ -36,10 +35,17 @@ class BasePersistenceModel:
 
     def _insert_into_staging(self, df, staging_table_name) -> None:
         cols_to_insert = list(df.columns)
-        zipped_data = PandasUtils.zip_df_columns(df, cols_to_insert)
-        values = QueryBuilderPG.unzip_to_query_values_str(zipped_data)
+        zipped_data = self._zip_df_columns(df, cols_to_insert)
+        values = QueryUtils.unzip_to_query_values_str(zipped_data)
         self._db_execute(f"""
             INSERT INTO {staging_table_name}
             ({', '.join(cols_to_insert)})
             VALUES {values};
         """)
+
+    @staticmethod
+    def _zip_df_columns(df: pd.DataFrame, columns: list[str] = None) -> zip:
+        columns_values = []
+        for column in columns:
+            columns_values.append(tuple(df[column]))
+        return zip(*columns_values)
