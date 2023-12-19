@@ -4,7 +4,7 @@ from scrap_steam_services import (
 from steam_user.steam_web_crawler import SteamWebCrawler
 from steam_user.SteamInventory import SteamInventory
 from steam_user.SteamBadges import SteamBadges
-from data_models.query.SteamUserRepository import SteamUserRepository
+from data_models.SteamUserRepository import SteamUserRepository
 
 
 class SteamUser:
