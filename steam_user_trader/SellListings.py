@@ -1,6 +1,6 @@
 import pandas as pd
 
-from data_models.query.SellListingsRepository import SellListingsRepository
+from data_models import QueryDB
 
 
 class SellListings:
@@ -16,5 +16,5 @@ class SellListings:
 
     def reload_current(self) -> None:
         columns = ['id', 'game_id', 'item_id', 'steam_id', 'price_buyer', 'price_to_receive', 'steam_created_at', 'created_at', 'removed_at']
-        db_data = SellListingsRepository.get_current_sell_listings(user_id=self._user_id)
+        db_data = QueryDB.get_repo('sell_listing').get_current_sell_listings(user_id=self._user_id)
         self._df = pd.DataFrame(db_data, columns=columns)

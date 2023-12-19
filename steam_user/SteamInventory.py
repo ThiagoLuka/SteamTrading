@@ -1,6 +1,6 @@
 import pandas as pd
 
-from data_models.query.SteamInventoryRepository import SteamInventoryRepository
+from data_models import QueryDB
 
 
 class SteamInventory:
@@ -16,7 +16,7 @@ class SteamInventory:
 
     def reload_current(self) -> None:
         columns = ['id', 'game_id', 'item_steam_id', 'steam_asset_id', 'marketable', 'created_at']
-        db_data = SteamInventoryRepository.get_current_inventory(user_id=self._user_id)
+        db_data = QueryDB.get_repo('inventory').get_current_inventory(user_id=self._user_id)
         self._df = pd.DataFrame(db_data, columns=columns)
 
     def size(self, marketable: bool = False) -> int:

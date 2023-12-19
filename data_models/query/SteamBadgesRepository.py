@@ -1,15 +1,15 @@
-from data_models.db.DBController import DBController
+from .BaseQueryRepository import BaseQueryRepository
 
 
-class SteamBadgesRepository:
+class SteamBadgesRepository(BaseQueryRepository):
 
-    @staticmethod
-    def get_user_total_experience(user_id: int) -> int:
+    @classmethod
+    def get_user_total_experience(cls, user_id: int) -> int:
         query = f"""
             SELECT sum(experience)
             FROM user_badges
             WHERE
                 user_id = {user_id} AND active = True;
         """
-        result = DBController.execute(query=query, get_result=True)
+        result = cls._db_execute(query=query)
         return result[0][0]

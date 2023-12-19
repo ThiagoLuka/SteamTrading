@@ -1,10 +1,10 @@
-from data_models.db.DBController import DBController
+from .BaseQueryRepository import BaseQueryRepository
 
 
-class SteamInventoryRepository:
+class SteamInventoryRepository(BaseQueryRepository):
 
-    @staticmethod
-    def get_current_inventory(user_id: int) -> list[tuple]:
+    @classmethod
+    def get_current_inventory(cls, user_id: int) -> list[tuple]:
         query = f"""
         SELECT
               isa.id AS id
@@ -19,5 +19,5 @@ class SteamInventoryRepository:
             user_id = '{user_id}'
             AND removed_at IS NULL;
         """
-        result = DBController.execute(query=query, get_result=True)
+        result = cls._db_execute(query=query)
         return result

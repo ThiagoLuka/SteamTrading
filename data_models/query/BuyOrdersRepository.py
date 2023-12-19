@@ -1,10 +1,10 @@
-from data_models.db.DBController import DBController
+from .BaseQueryRepository import BaseQueryRepository
 
 
-class BuyOrdersRepository:
+class BuyOrdersRepository(BaseQueryRepository):
 
-    @staticmethod
-    def get_current_buy_orders(user_id: int) -> list[tuple]:
+    @classmethod
+    def get_current_buy_orders(cls, user_id: int) -> list[tuple]:
         query = f"""
         SELECT
               bo.buy_order_id AS id
@@ -23,11 +23,11 @@ class BuyOrdersRepository:
             ON ugt.user_id = bo.user_id AND is2.game_id = ugt.game_id
         WHERE active AND bo.user_id = '{user_id}';
         """
-        result = DBController.execute(query=query, get_result=True)
+        result = cls._db_execute(query=query)
         return result
 
-    @staticmethod
-    def get_inactive_with_created_at_rank(user_id: int) -> list[tuple]:
+    @classmethod
+    def get_inactive_with_created_at_rank(cls, user_id: int) -> list[tuple]:
         query = f"""
         SELECT
               bo.buy_order_id AS id
@@ -47,5 +47,5 @@ class BuyOrdersRepository:
             ON ugt.user_id = bo.user_id AND is2.game_id = ugt.game_id
         WHERE NOT active AND bo.user_id = '{user_id}';
         """
-        result = DBController.execute(query=query, get_result=True)
+        result = cls._db_execute(query=query)
         return result

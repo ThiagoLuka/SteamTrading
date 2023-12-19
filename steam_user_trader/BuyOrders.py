@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pandas as pd
 
-from data_models.query.BuyOrdersRepository import BuyOrdersRepository
+from data_models import QueryDB
 
 
 class BuyOrders:
@@ -19,9 +19,9 @@ class BuyOrders:
 
     def reload_current(self) -> None:
         columns = ['id', 'game_id', 'item_id', 'steam_id', 'price', 'qtd_start', 'qtd_current', 'created_at', 'updated_at', 'removed_at']
-        db_data = BuyOrdersRepository.get_current_buy_orders(user_id=self._user_id)
+        db_data = QueryDB.get_repo('buy_order').get_current_buy_orders(user_id=self._user_id)
         self._df_active = pd.DataFrame(db_data, columns=columns)
-        db_data = BuyOrdersRepository.get_inactive_with_created_at_rank(user_id=self._user_id)
+        db_data = QueryDB.get_repo('buy_order').get_inactive_with_created_at_rank(user_id=self._user_id)
         df = pd.DataFrame(db_data, columns=columns + ['created_at_rank'])
         df = df[df['created_at_rank'] <= 2]
         self._df_most_recent_inactive = df.drop(columns='created_at_rank')

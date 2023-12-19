@@ -1,14 +1,28 @@
 from data_models.QueryUtils import QueryUtils
-from data_models.db.DBController import DBController
+from .BaseQueryRepository import BaseQueryRepository
 
 
-class SteamGamesRepository:
+class SteamGamesRepository(BaseQueryRepository):
 
-    def get_all_by_ids_new(self, ids: list[int], with_items: bool) -> list[tuple]:
+    @classmethod
+    def get_all_games_by_ids(cls, ids: list[int], with_items: bool) -> list[tuple]:
         ids = [str(i) for i in ids]
-        query = self._with_items_query(ids) if with_items else self._without_items_query(ids)
-        result = DBController.execute(query=query, get_result=True)
+        query = cls._with_items_query(ids) if with_items else cls._without_items_query(ids)
+        result = cls._db_execute(query=query)
         return result
+
+    @staticmethod
+    def _without_items_query(ids: list[str]) -> str:
+        return f"""
+        SELECT
+              id
+            , name
+            , market_id
+            , has_trading_cards
+        FROM public.games g
+        WHERE
+            id IN ({', '.join(ids)});
+        """
 
     @staticmethod
     def _with_items_query(ids: list[str]):
@@ -32,38 +46,25 @@ class SteamGamesRepository:
             g.id IN ({', '.join(ids)});
         """
 
-    @staticmethod
-    def _without_items_query(ids: list[str]) -> str:
-        return f"""
-        SELECT
-              id
-            , name
-            , market_id
-            , has_trading_cards
-        FROM public.games g
-        WHERE
-            id IN ({', '.join(ids)});
-        """
-
-    @staticmethod
-    def get_has_trading_cards_but_none_found() -> list[tuple]:
+    @classmethod
+    def get_has_trading_cards_but_none_found(cls) -> list[tuple]:
         query = """
             SELECT DISTINCT g.id AS id
             FROM games g
             LEFT JOIN item_trading_cards itc ON itc.game_id = g.id
             WHERE
-                has_trading_cards AND set_numberIS NULL;
+                has_trading_cards AND set_number IS NULL;
         """
-        result = DBController.execute(query=query, get_result=True)
+        result = cls._db_execute(query=query)
         return result
 
-    @staticmethod
-    def get_item_type_id(type_name: str) -> int:
+    @classmethod
+    def get_item_type_id(cls, type_name: str) -> int:
         type_name = QueryUtils.sanitize_string(type_name)
         query = f"""
             SELECT id
             FROM item_steam_types
             WHERE name = '{type_name}';
         """
-        result = DBController.execute(query=query, get_result=True)
+        result = cls._db_execute(query=query)
         return result[0][0]

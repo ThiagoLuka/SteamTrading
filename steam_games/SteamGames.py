@@ -1,6 +1,6 @@
 import pandas as pd
 
-from data_models.query.SteamGamesRepository import SteamGamesRepository
+from data_models import QueryDB
 
 
 class SteamGames:
@@ -15,7 +15,7 @@ class SteamGames:
 
     @classmethod
     def has_cards_but_none_found(cls):
-        game_ids = SteamGamesRepository.get_has_trading_cards_but_none_found()
+        game_ids = QueryDB.get_repo('games').get_has_trading_cards_but_none_found()
         return cls(game_ids=game_ids)
 
     @property
@@ -65,7 +65,7 @@ class SteamGames:
         self._with_items = with_items
         columns = ['id', 'name', 'market_id', 'has_trading_cards']
         item_cols = ['item_id', 'item_name', 'steam_item_type', 'item_market_url_name', 'set_number', 'foil']
-        db_data = SteamGamesRepository().get_all_by_ids_new(ids=game_ids, with_items=with_items)
+        db_data = QueryDB.get_repo('games').get_all_games_by_ids(ids=game_ids, with_items=with_items)
         if with_items:
             self._df_items = pd.DataFrame(db_data, columns=columns + item_cols)
             self._df = self._df_items[columns].drop_duplicates().copy()
@@ -75,4 +75,5 @@ class SteamGames:
 
     @staticmethod
     def get_item_type_id(type_name: str) -> int:
-        return SteamGamesRepository.get_item_type_id(type_name=type_name)
+        item_type_id = QueryDB.get_repo('games').get_item_type_id(type_name=type_name)
+        return item_type_id

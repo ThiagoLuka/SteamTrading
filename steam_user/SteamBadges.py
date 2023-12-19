@@ -1,4 +1,4 @@
-from data_models.query.SteamBadgesRepository import SteamBadgesRepository
+from data_models import QueryDB
 from utils.MathUtils import MathUtils
 
 
@@ -17,7 +17,7 @@ class SteamBadges:
         # by figuring out that the level could be split into the tens, which follow a triangular sequence times 1000,
         # and the units, which follow a linear progression of the nth element of the triangular sequence time 100
         # That's why this weird calculation that comes after works
-        user_xp: int = SteamBadgesRepository.get_user_total_experience(user_id)
+        user_xp: int = QueryDB.get_repo('badges').get_user_total_experience(user_id)
         thousand_xp_to_this_ten, level_tens = MathUtils.highest_triangular_number_and_nth_term_below(user_xp // 1000)
         user_xp_units = user_xp - (thousand_xp_to_this_ten * 1000)
         level_units = user_xp_units // ((level_tens + 1) * 100)
