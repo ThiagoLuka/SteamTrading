@@ -11,21 +11,26 @@ class SteamGamesRepository(BaseQueryRepository):
         result = cls._db_execute(query=query)
         return result
 
-    @staticmethod
-    def _without_items_query(ids: list[str]) -> str:
+    @classmethod
+    def _without_items_query(cls, ids: list[str]) -> str:
+        game = cls.query_tables(table_type='game')
         return f"""
         SELECT
               id
             , name
             , market_id
             , has_trading_cards
-        FROM public.games g
+        FROM {game} g
         WHERE
             id IN ({', '.join(ids)});
         """
 
-    @staticmethod
-    def _with_items_query(ids: list[str]):
+    @classmethod
+    def _with_items_query(cls, ids: list[str]):
+        game = cls.query_tables(table_type='game')
+        item = cls.query_tables(table_type='steam_item')
+        trading_card = cls.query_tables(table_type='steam_item_trading_card')
+        item_type = cls.query_tables(table_type='steam_item_type')
         return f"""
         SELECT
               g.id
@@ -38,20 +43,22 @@ class SteamGamesRepository(BaseQueryRepository):
             , is2.market_url_name AS item_market_url_name
             , itc.set_number
             , itc.foil
-        FROM public.games g
-        LEFT JOIN public.items_steam is2 ON is2.game_id = g.id
-        LEFT JOIN public.item_trading_cards itc ON itc.item_steam_id = is2.id
-        LEFT JOIN public.item_steam_types ist ON ist.id = is2.item_steam_type_id
+        FROM {game} g
+        LEFT JOIN {item} is2 ON is2.game_id = g.id
+        LEFT JOIN {trading_card} itc ON itc.item_steam_id = is2.id
+        LEFT JOIN {item_type} ist ON ist.id = is2.item_steam_type_id
         WHERE
             g.id IN ({', '.join(ids)});
         """
 
     @classmethod
     def get_has_trading_cards_but_none_found(cls) -> list[tuple]:
-        query = """
+        game = cls.query_tables(table_type='game')
+        trading_card = cls.query_tables(table_type='steam_item_trading_card')
+        query = f"""
             SELECT DISTINCT g.id AS id
-            FROM games g
-            LEFT JOIN item_trading_cards itc ON itc.game_id = g.id
+            FROM {game} g
+            LEFT JOIN {trading_card} itc ON itc.game_id = g.id
             WHERE
                 has_trading_cards AND set_number IS NULL;
         """
@@ -61,9 +68,10 @@ class SteamGamesRepository(BaseQueryRepository):
     @classmethod
     def get_item_type_id(cls, type_name: str) -> int:
         type_name = QueryUtils.sanitize_string(type_name)
+        item_type = cls.query_tables(table_type='steam_item_type')
         query = f"""
             SELECT id
-            FROM item_steam_types
+            FROM {item_type} ist
             WHERE name = '{type_name}';
         """
         result = cls._db_execute(query=query)

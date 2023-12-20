@@ -5,6 +5,9 @@ class SellListingsRepository(BaseQueryRepository):
 
     @classmethod
     def get_current_sell_listings(cls, user_id: int) -> list[tuple]:
+        sell_listing = cls.query_tables(table_type='sell_listing')
+        inventory = cls.query_tables(table_type='inventory')
+        item = cls.query_tables(table_type='steam_item')
         query = f"""
         SELECT
               sl.id
@@ -16,9 +19,9 @@ class SellListingsRepository(BaseQueryRepository):
             , sl.steam_created_at
             , sl.created_at
             , sl.removed_at
-        FROM public.sell_listing sl
-        INNER JOIN item_steam_assets isa ON isa.id = sl.asset_id
-        INNER JOIN public.items_steam is2 ON is2.id = isa.item_steam_id
+        FROM {sell_listing} sl
+        INNER JOIN {inventory} isa ON isa.id = sl.asset_id
+        INNER JOIN {item} is2 ON is2.id = isa.item_steam_id
         WHERE active AND sl.user_id = '{user_id}';
         """
         result = cls._db_execute(query=query)

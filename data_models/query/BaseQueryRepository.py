@@ -8,7 +8,19 @@ class BaseQueryRepository:
     @staticmethod
     def query_tables(table_type: str) -> str:
         return {
-            # 'inventory':
+            'game': 'public.games',
+            'user': 'public.users',
+            'user_game': 'public.user_game_trade',
+            'bagde_game': 'public.game_badges',
+            'badge_user': 'public.user_badges',
+            'badge_pure': 'public.pure_badges',
+            'steam_item': 'public.items_steam',
+            'steam_item_trading_card': 'public.item_trading_cards',
+            'steam_item_type': 'public.item_steam_types',
+            'steam_item_description': 'public.item_steam_descriptions',
+            'inventory': 'public.item_steam_assets',
+            'sell_listing': 'public.sell_listing',
+            'buy_order': 'public.buy_orders',
         }.get(table_type)
 
     @staticmethod
