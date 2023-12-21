@@ -18,7 +18,7 @@ class BaseQueryRepository:
             'steam_item_trading_card': 'public.item_trading_cards',
             'steam_item_type': 'public.item_steam_types',
             'steam_item_description': 'public.item_steam_descriptions',
-            'inventory': 'public.item_steam_assets',
+            'inventory': 'public.steam_asset',
             'sell_listing': 'public.sell_listing',
             'buy_order': 'public.buy_orders',
         }.get(table_type)

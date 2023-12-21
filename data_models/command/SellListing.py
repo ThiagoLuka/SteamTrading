@@ -87,7 +87,7 @@ class SellListing(BasePersistenceModel, name='sell_listing'):
 	            ssl.created_at,
 	            NULL AS removed_at
             FROM {staging} ssl
-            LEFT JOIN {inventory_table_name} isa ON isa.asset_id = ssl.steam_asset_id
+            LEFT JOIN {inventory_table_name} isa ON isa.steam_asset_id = ssl.steam_asset_id
             ON CONFLICT (steam_sell_listing_id)
             DO UPDATE
             SET

@@ -21,8 +21,8 @@ class SellListingsRepository(BaseQueryRepository):
             , sl.removed_at
         FROM {sell_listing} sl
         INNER JOIN {inventory} isa ON isa.id = sl.asset_id
-        INNER JOIN {item} is2 ON is2.id = isa.item_steam_id
-        WHERE active AND sl.user_id = '{user_id}';
+        INNER JOIN {item} is2 ON is2.id = isa.item_id
+        WHERE sl.active AND sl.user_id = '{user_id}';
         """
         result = cls._db_execute(query=query)
         return result
