@@ -19,7 +19,7 @@
 
 
 -- game and users
-CREATE TABLE public.games (
+CREATE TABLE IF NOT EXISTS public.games (
 	  id int4 NOT NULL GENERATED ALWAYS AS IDENTITY
 	, "name" text NOT NULL
 	, market_id text NOT NULL
@@ -28,7 +28,7 @@ CREATE TABLE public.games (
 	, CONSTRAINT games_market_id_key UNIQUE (market_id)
 );
 
-CREATE TABLE public.users (
+CREATE TABLE IF NOT EXISTS public.users (
 	  id int4 NOT NULL GENERATED ALWAYS AS IDENTITY
 	, steam_id text NOT NULL
 	, steam_alias text NULL
@@ -36,7 +36,7 @@ CREATE TABLE public.users (
 	, CONSTRAINT users_steam_id_key UNIQUE (steam_id)
 );
 
-CREATE TABLE public.user_game_trade (
+CREATE TABLE IF NOT EXISTS public.user_game_trade (
 	  user_id int4 NOT NULL
 	, game_id int4 NOT NULL
 	, CONSTRAINT user_game_trade_game_id_fkey FOREIGN KEY (game_id) REFERENCES public.games(id)
@@ -45,7 +45,7 @@ CREATE TABLE public.user_game_trade (
 
 
 -- badges
-CREATE TABLE public.game_badges (
+CREATE TABLE IF NOT EXISTS public.game_badges (
 	  id int4 NOT NULL GENERATED ALWAYS AS IDENTITY
 	, game_id int4 NOT NULL
 	, "name" text NOT NULL
@@ -56,14 +56,14 @@ CREATE TABLE public.game_badges (
 	, CONSTRAINT game_badges_game_id_fkey FOREIGN KEY (game_id) REFERENCES public.games(id)
 );
 
-CREATE TABLE public.pure_badges (
+CREATE TABLE IF NOT EXISTS public.pure_badges (
 	  id int4 NOT NULL GENERATED ALWAYS AS IDENTITY
 	, page_id int4 NOT NULL
 	, "name" text NOT NULL
 	, CONSTRAINT pure_badges_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE public.user_badges (
+CREATE TABLE IF NOT EXISTS public.user_badges (
 	  id int4 NOT NULL GENERATED ALWAYS AS IDENTITY
 	, user_id int4 NOT NULL
 	, game_badge_id int4 NULL
@@ -79,14 +79,14 @@ CREATE TABLE public.user_badges (
 
 
 -- item dimension
-CREATE TABLE public.item_steam_types (
+CREATE TABLE IF NOT EXISTS public.item_steam_types (
 	  id int4 NOT NULL
 	, "name" text NOT NULL
 	, CONSTRAINT item_steam_types_pkey PRIMARY KEY (id)
 	, CONSTRAINT item_steam_types_name_key UNIQUE (name)
 );
 
-CREATE TABLE public.items_steam (
+CREATE TABLE IF NOT EXISTS public.items_steam (
 	  id int4 NOT NULL GENERATED ALWAYS AS IDENTITY
 	, game_id int4 NOT NULL
 	, item_steam_type_id int4 NOT NULL
@@ -98,7 +98,7 @@ CREATE TABLE public.items_steam (
 	, CONSTRAINT items_steam_item_steam_type_id_fkey FOREIGN KEY (item_steam_type_id) REFERENCES public.item_steam_types(id) ON UPDATE CASCADE
 );
 
-CREATE TABLE public.item_steam_descriptions (
+CREATE TABLE IF NOT EXISTS public.item_steam_descriptions (
 	  item_steam_id int4 NOT NULL
 	, class_id text NOT NULL
 	, CONSTRAINT item_steam_descriptions_pkey PRIMARY KEY (item_steam_id)
@@ -106,7 +106,7 @@ CREATE TABLE public.item_steam_descriptions (
 	, CONSTRAINT item_steam_descriptions_item_steam_id_fkey FOREIGN KEY (item_steam_id) REFERENCES public.items_steam(id)
 );
 
-CREATE TABLE public.item_trading_cards (
+CREATE TABLE IF NOT EXISTS public.item_trading_cards (
 	  id int4 NOT NULL GENERATED ALWAYS AS IDENTITY
 	, item_steam_id int4 NOT NULL
 	, game_id int4 NOT NULL
@@ -142,7 +142,7 @@ CREATE TABLE IF NOT EXISTS public.steam_asset (
 
 
 -- sell listing
-CREATE TABLE public.sell_listing (
+CREATE TABLE IF NOT EXISTS public.sell_listing (
 	  id int4 NOT NULL GENERATED ALWAYS AS IDENTITY
 	, steam_sell_listing_id text NULL
 	, asset_id int4 NOT NULL
@@ -155,27 +155,26 @@ CREATE TABLE public.sell_listing (
 	, removed_at timestamp NULL
 	, CONSTRAINT sell_listing_pkey PRIMARY KEY (id)
 	, CONSTRAINT sell_listing_steam_sell_listing_id_key UNIQUE (steam_sell_listing_id)
-	, CONSTRAINT sell_listing_asset_id_fkey FOREIGN KEY (asset_id) REFERENCES public.item_steam_assets(id)
+	, CONSTRAINT sell_listing_asset_id_fkey FOREIGN KEY (asset_id) REFERENCES public.steam_asset(id)
 	, CONSTRAINT sell_listing_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
 );
 
 
 -- buy order
-CREATE TABLE public.buy_orders (
-	  buy_order_id int4 NOT NULL GENERATED ALWAYS AS IDENTITY
+CREATE TABLE IF NOT EXISTS public.buy_order (
+	  id int4 NOT NULL GENERATED ALWAYS AS IDENTITY
 	, steam_buy_order_id text NULL
 	, user_id int4 NOT NULL
-	, item_steam_id int4 NOT NULL
+	, item_id int4 NOT NULL
 	, active bool NOT NULL
 	, price int4 NOT NULL
 	, qtd_start int4 NOT NULL
-	, qtd_estimate int4 NOT NULL
 	, qtd_current int4 NOT NULL
 	, created_at timestamp NOT NULL
 	, updated_at timestamp NOT NULL
 	, removed_at timestamp NULL
 	, CONSTRAINT buy_orders_pkey PRIMARY KEY (buy_order_id)
 	, CONSTRAINT buy_orders_steam_buy_order_id_key UNIQUE (steam_buy_order_id)
-	, CONSTRAINT buy_orders_item_steam_id_fkey FOREIGN KEY (item_steam_id) REFERENCES public.items_steam(id)
+	, CONSTRAINT buy_orders_item_id_fkey FOREIGN KEY (item_steam_id) REFERENCES public.items_steam(id)
 	, CONSTRAINT buy_orders_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
 );

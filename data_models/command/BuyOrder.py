@@ -11,7 +11,7 @@ class BuyOrder(BasePersistenceModel, name='buy_order'):
     @staticmethod
     def table_name(table_type: str) -> str:
         return {
-            'public': 'public.buy_orders',
+            'public': 'public.buy_order',
             'staging': 'staging.buy_order',
         }.get(table_type, '')
 
@@ -41,14 +41,13 @@ class BuyOrder(BasePersistenceModel, name='buy_order'):
             UPDATE {public} pbo
             SET
             	  active = False
-            	, qtd_estimate = 0
             	, qtd_current = 0
             	, updated_at = s.created_at
             	, removed_at = s.created_at
             FROM {staging} s
             WHERE 
                 pbo.active
-                AND pbo.item_steam_id = s.item_id
+                AND pbo.item_id = s.item_id
                 AND pbo.user_id = s.user_id;
             
             TRUNCATE TABLE {staging};
@@ -64,11 +63,10 @@ class BuyOrder(BasePersistenceModel, name='buy_order'):
             INSERT INTO {public} (
                   steam_buy_order_id
                 , user_id
-                , item_steam_id
+                , item_id
                 , active
                 , price
                 , qtd_start
-                , qtd_estimate
                 , qtd_current
                 , created_at
                 , updated_at
@@ -81,7 +79,6 @@ class BuyOrder(BasePersistenceModel, name='buy_order'):
             	True AS active,
             	price,
             	quantity AS qtd_start,
-            	quantity AS qtd_estimate,
             	quantity AS qtd_current,
             	created_at AS created_at,
             	created_at AS updated_at,
@@ -91,8 +88,7 @@ class BuyOrder(BasePersistenceModel, name='buy_order'):
             DO UPDATE
             SET
             	  active = True
-            	, qtd_estimate = EXCLUDED.qtd_estimate
-            	, qtd_current = EXCLUDED.qtd_estimate
+            	, qtd_current = EXCLUDED.qtd_current
             	, updated_at = EXCLUDED.created_at
             	, removed_at = NULL
             ;

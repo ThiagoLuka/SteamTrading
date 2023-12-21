@@ -20,7 +20,7 @@ class BaseQueryRepository:
             'steam_item_description': 'public.item_steam_descriptions',
             'inventory': 'public.steam_asset',
             'sell_listing': 'public.sell_listing',
-            'buy_order': 'public.buy_orders',
+            'buy_order': 'public.buy_order',
         }.get(table_type)
 
     @staticmethod
