@@ -16,9 +16,9 @@ class SteamItem(BasePersistenceModel, name='steam_item'):
             'public': 'public.items_steam',
             'staging_inventory': 'staging.steam_item_from_inventory',
             'staging_profile_game_cards': 'staging.steam_item_from_profile_game_cards',
-            'item_type': 'public.item_steam_types',
-            'description': 'public.item_steam_descriptions',
-            'trading_card': 'public.item_trading_cards',
+            'item_type': 'public.steam_item_type',
+            'description': 'public.steam_item_description',
+            'trading_card': 'public.steam_trading_card',
         }.get(table_type, '')
 
     @staticmethod
@@ -120,7 +120,7 @@ class SteamItem(BasePersistenceModel, name='steam_item'):
             , steam_item_type_name AS name
         FROM {staging_table} s
         LEFT JOIN {public_item_type_table} p
-        ON s.steam_item_type_id = p.id AND s.steam_item_type_name = p.name
+            ON s.steam_item_type_id = p.id AND s.steam_item_type_name = p.name
         WHERE p.id IS NULL
         ON CONFLICT (id)
         DO UPDATE SET name = EXCLUDED.name;
@@ -195,18 +195,18 @@ class SteamItem(BasePersistenceModel, name='steam_item'):
         
         -- inserting new descriptions
         WITH staging_with_steam_item_id AS (
-            SELECT p.id AS steam_item_id, s.*
+            SELECT p.id AS item_id, s.*
             FROM tmp_staging s
             INNER JOIN {public_game_table} g ON s.game_market_id = g.market_id
             INNER JOIN {public_table} p
                 ON p.game_id = g.id AND s.market_url_name = p.market_url_name
         )
         INSERT INTO {public_description_table} (
-              item_steam_id
+              item_id
             , class_id
         )
         SELECT
-              steam_item_id
+              item_id
             , class_id
         FROM staging_with_steam_item_id;
         
@@ -222,13 +222,13 @@ class SteamItem(BasePersistenceModel, name='steam_item'):
     ) -> str:
         return f"""
         INSERT INTO {public_table} (
-        	  item_steam_id
+        	  item_id
         	, game_id 
         	, set_number 
         	, foil
         )
         SELECT
-        	  is2.id AS item_steam_id
+        	  is2.id AS item_id
         	, g.id AS game_id
         	, s.set_number AS set_number
         	, s.foil AS foil

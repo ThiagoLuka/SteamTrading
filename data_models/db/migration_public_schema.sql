@@ -79,11 +79,11 @@ CREATE TABLE IF NOT EXISTS public.user_badges (
 
 
 -- item dimension
-CREATE TABLE IF NOT EXISTS public.item_steam_types (
+CREATE TABLE IF NOT EXISTS public.steam_item_type (
 	  id int4 NOT NULL
 	, "name" text NOT NULL
-	, CONSTRAINT item_steam_types_pkey PRIMARY KEY (id)
-	, CONSTRAINT item_steam_types_name_key UNIQUE (name)
+	, CONSTRAINT steam_item_type_pkey PRIMARY KEY (id)
+	, CONSTRAINT steam_item_type_name_key UNIQUE (name)
 );
 
 CREATE TABLE IF NOT EXISTS public.items_steam (
@@ -98,24 +98,24 @@ CREATE TABLE IF NOT EXISTS public.items_steam (
 	, CONSTRAINT items_steam_item_steam_type_id_fkey FOREIGN KEY (item_steam_type_id) REFERENCES public.item_steam_types(id) ON UPDATE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS public.item_steam_descriptions (
-	  item_steam_id int4 NOT NULL
+CREATE TABLE IF NOT EXISTS public.steam_item_description (
+	  item_id int4 NOT NULL
 	, class_id text NOT NULL
-	, CONSTRAINT item_steam_descriptions_pkey PRIMARY KEY (item_steam_id)
+	, CONSTRAINT steam_item_description_pkey PRIMARY KEY (item_id)
 	, CONSTRAINT unique_descript UNIQUE (class_id)
-	, CONSTRAINT item_steam_descriptions_item_steam_id_fkey FOREIGN KEY (item_steam_id) REFERENCES public.items_steam(id)
+	, CONSTRAINT steam_item_description_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.items_steam(id)
 );
 
-CREATE TABLE IF NOT EXISTS public.item_trading_cards (
+CREATE TABLE IF NOT EXISTS public.steam_trading_card (
 	  id int4 NOT NULL GENERATED ALWAYS AS IDENTITY
-	, item_steam_id int4 NOT NULL
+	, item_id int4 NOT NULL
 	, game_id int4 NOT NULL
 	, set_number int2 NOT NULL
 	, foil bool NOT NULL DEFAULT false
-	, CONSTRAINT item_trading_cards_pkey PRIMARY KEY (id)
-	, CONSTRAINT unique_card UNIQUE (game_id, set_number, foil)
-	, CONSTRAINT item_trading_cards_game_id_fkey FOREIGN KEY (game_id) REFERENCES public.games(id)
-	, CONSTRAINT item_trading_cards_item_steam_id_fkey FOREIGN KEY (item_steam_id) REFERENCES public.items_steam(id) ON DELETE CASCADE
+	, CONSTRAINT steam_trading_card_pkey PRIMARY KEY (id)
+	, CONSTRAINT unique_steam_trading_card UNIQUE (game_id, set_number, foil)
+	, CONSTRAINT steam_trading_card_game_id_fkey FOREIGN KEY (game_id) REFERENCES public.games(id)
+	, CONSTRAINT steam_trading_card_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.items_steam(id)
 );
 
 
@@ -173,8 +173,8 @@ CREATE TABLE IF NOT EXISTS public.buy_order (
 	, created_at timestamp NOT NULL
 	, updated_at timestamp NOT NULL
 	, removed_at timestamp NULL
-	, CONSTRAINT buy_orders_pkey PRIMARY KEY (buy_order_id)
-	, CONSTRAINT buy_orders_steam_buy_order_id_key UNIQUE (steam_buy_order_id)
-	, CONSTRAINT buy_orders_item_id_fkey FOREIGN KEY (item_steam_id) REFERENCES public.items_steam(id)
-	, CONSTRAINT buy_orders_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+	, CONSTRAINT buy_order_pkey PRIMARY KEY (buy_order_id)
+	, CONSTRAINT buy_order_steam_buy_order_id_key UNIQUE (steam_buy_order_id)
+	, CONSTRAINT buy_order_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.items_steam(id)
+	, CONSTRAINT buy_order_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
 );

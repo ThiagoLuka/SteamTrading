@@ -96,7 +96,7 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         	, sa.created_at AS created_at
         FROM {staging_table} sa
         LEFT JOIN {public_item_description_table} isd ON sa.class_id = isd.class_id 
-        LEFT JOIN {public_item_table} is2 ON isd.item_steam_id = is2.id;
+        LEFT JOIN {public_item_table} is2 ON isd.item_id = is2.id;
         
         -- deleting from tmp_staging those that doesnt need upserting
         DELETE FROM tmp_staging sa
