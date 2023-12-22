@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS public.steam_asset (
 	, steam_asset_id text NOT NULL
 	, active bool NOT NULL
 	, marketable bool NOT NULL
-	, tradeable bool NOT NULL
+	, tradable bool NOT NULL
 	, origin text NOT NULL
 	, origin_price int4 NOT NULL
 	, destination text NOT NULL

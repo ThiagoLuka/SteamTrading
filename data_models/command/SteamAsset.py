@@ -5,7 +5,7 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
 
     def save(self, user_id: int):
         self._df['user_id'] = user_id
-        self._df.drop_duplicates(subset=['asset_id', 'user_id'], inplace=True)
+        self._df.drop_duplicates(subset=['steam_asset_id', 'user_id'], inplace=True)
         self._insert_into_staging(df=self._df, staging_table_name=self.table_name(table_type='staging'))
         self._transfer_staging_to_public()
 
@@ -67,7 +67,7 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         		  LIMIT 1) AS removed_at
         	FROM {public_table} pa
         	LEFT JOIN {staging_table} sa 
-        	    ON pa.user_id = sa.user_id AND pa.steam_asset_id = sa.asset_id
+        	    ON pa.user_id = sa.user_id AND pa.steam_asset_id = sa.steam_asset_id
         	WHERE pa.active AND sa.created_at IS NULL
         	)
         UPDATE {public_table} pa
@@ -90,8 +90,9 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         SELECT
         	  is2.id AS item_id
         	, sa.user_id AS user_id
-        	, sa.asset_id AS steam_asset_id
+        	, sa.steam_asset_id AS steam_asset_id
         	, sa.marketable AS marketable 
+        	, sa.tradable AS tradable
         	, True AS active
         	, sa.created_at AS created_at
         FROM {staging_table} sa
@@ -106,6 +107,7 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         	AND sa.steam_asset_id = pa.steam_asset_id
         	AND sa.user_id = pa.user_id
         	AND sa.marketable = pa.marketable
+        	AND sa.tradable = pa.tradable
         	AND sa.active = pa.active;
         
         -- upserting new assets
@@ -115,7 +117,7 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         	, steam_asset_id
         	, active
         	, marketable
-        	, tradeable
+        	, tradable
         	, origin
         	, origin_price
         	, destination
@@ -129,7 +131,7 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         	, steam_asset_id
         	, True AS active
         	, marketable
-        	, False AS tradeable
+        	, tradable
         	, 'Unknown' AS origin
         	, 0 AS origin_price
         	, 'Unknown' AS destination
@@ -143,6 +145,7 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         	item_id = EXCLUDED.item_id,
         	active = EXCLUDED.active,
         	marketable = EXCLUDED.marketable,
+        	tradable = EXCLUDED.tradable,
         	created_at = {public_table}.created_at,
         	removed_at = EXCLUDED.removed_at;
         

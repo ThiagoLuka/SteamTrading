@@ -68,12 +68,17 @@ class InventoryCleaner:
         for asset in self.__inventory['assets']:
             steam_asset_info.append({
                 'class_id': self._get_class_id(asset),
-                'asset_id': self._get_asset_id(asset),
+                'steam_asset_id': self._get_asset_id(asset),
                 'marketable': self._get_marketable(
                     descriptions=self.__inventory['descriptions'],
                     instance_id=self._get_instance_id(asset),
                     class_id=self._get_class_id(asset),
-                )
+                ),
+                'tradable': self._get_tradable(
+                    descriptions=self.__inventory['descriptions'],
+                    instance_id=self._get_instance_id(asset),
+                    class_id=self._get_class_id(asset),
+                ),
             })
         return steam_asset_info
 
@@ -123,6 +128,12 @@ class InventoryCleaner:
         for d in descriptions:
             if d['instanceid'] == instance_id and d['classid'] == class_id:
                 return d['marketable']
+
+    @staticmethod
+    def _get_tradable(descriptions: list, instance_id: str, class_id: str) -> int:
+        for d in descriptions:
+            if d['instanceid'] == instance_id and d['classid'] == class_id:
+                return d['tradable']
 
     def get_game_booster_pack_asset_ids(self, game_market_id: str) -> list[str]:
         desc = self.__inventory['descriptions']

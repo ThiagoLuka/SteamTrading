@@ -46,8 +46,9 @@ CREATE TABLE IF NOT EXISTS staging.steam_item_from_profile_game_cards (
 CREATE TABLE IF NOT EXISTS staging.steam_asset (
 	  class_id TEXT
 	, user_id INT
-	, asset_id TEXT
+	, steam_asset_id TEXT
 	, marketable BOOL
+	, tradable BOOL
 	, created_at TIMESTAMP DEFAULT NOW()::TIMESTAMP
 );
 
