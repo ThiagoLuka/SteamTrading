@@ -19,24 +19,24 @@
 
 
 -- game and users
-CREATE TABLE IF NOT EXISTS public.games (
+CREATE TABLE IF NOT EXISTS public.steam_game (
 	  id int4 NOT NULL GENERATED ALWAYS AS IDENTITY
 	, "name" text NOT NULL
 	, market_id text NOT NULL
 	, has_trading_cards bool NULL DEFAULT true
-	, CONSTRAINT games_pkey PRIMARY KEY (id)
-	, CONSTRAINT games_market_id_key UNIQUE (market_id)
+	, CONSTRAINT steam_game_pkey PRIMARY KEY (id)
+	, CONSTRAINT steam_game_market_id_key UNIQUE (market_id)
 );
 
-CREATE TABLE IF NOT EXISTS public.users (
+CREATE TABLE IF NOT EXISTS public.steam_user (
 	  id int4 NOT NULL GENERATED ALWAYS AS IDENTITY
 	, steam_id text NOT NULL
 	, steam_alias text NULL
-	, CONSTRAINT users_pkey PRIMARY KEY (id)
-	, CONSTRAINT users_steam_id_key UNIQUE (steam_id)
+	, CONSTRAINT steam_user_pkey PRIMARY KEY (id)
+	, CONSTRAINT steam_user_steam_id_key UNIQUE (steam_id)
 );
 
-CREATE TABLE IF NOT EXISTS public.user_game_trade (
+CREATE TABLE IF NOT EXISTS public.steam_user_marketable_game (
 	  user_id int4 NOT NULL
 	, game_id int4 NOT NULL
 	, CONSTRAINT user_game_trade_game_id_fkey FOREIGN KEY (game_id) REFERENCES public.games(id)
@@ -86,16 +86,16 @@ CREATE TABLE IF NOT EXISTS public.steam_item_type (
 	, CONSTRAINT steam_item_type_name_key UNIQUE (name)
 );
 
-CREATE TABLE IF NOT EXISTS public.items_steam (
+CREATE TABLE IF NOT EXISTS public.steam_item (
 	  id int4 NOT NULL GENERATED ALWAYS AS IDENTITY
 	, game_id int4 NOT NULL
-	, item_steam_type_id int4 NOT NULL
+	, steam_item_type_id int4 NOT NULL
 	, "name" text NOT NULL
 	, market_url_name text NOT NULL
-	, CONSTRAINT items_steam_pkey PRIMARY KEY (id)
-	, CONSTRAINT unique_item UNIQUE (game_id, market_url_name)
-	, CONSTRAINT items_steam_game_id_fkey FOREIGN KEY (game_id) REFERENCES public.games(id)
-	, CONSTRAINT items_steam_item_steam_type_id_fkey FOREIGN KEY (item_steam_type_id) REFERENCES public.item_steam_types(id) ON UPDATE CASCADE
+	, CONSTRAINT steam_item_pkey PRIMARY KEY (id)
+	, CONSTRAINT unique_steam_item UNIQUE (game_id, market_url_name)
+	, CONSTRAINT steam_item_game_id_fkey FOREIGN KEY (game_id) REFERENCES public.games(id)
+	, CONSTRAINT steam_item_steam_item_type_id_fkey FOREIGN KEY (steam_item_type_id) REFERENCES public.steam_item_type(id) ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS public.steam_item_description (

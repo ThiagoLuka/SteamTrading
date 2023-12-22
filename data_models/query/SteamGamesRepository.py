@@ -46,7 +46,7 @@ class SteamGamesRepository(BaseQueryRepository):
         FROM {game} g
         LEFT JOIN {item} is2 ON is2.game_id = g.id
         LEFT JOIN {trading_card} itc ON itc.item_id = is2.id
-        LEFT JOIN {item_type} ist ON ist.id = is2.item_steam_type_id
+        LEFT JOIN {item_type} ist ON ist.id = is2.steam_item_type_id
         WHERE
             g.id IN ({', '.join(ids)});
         """

@@ -14,7 +14,7 @@ class Game(BasePersistenceModel, name='game'):
     @staticmethod
     def table_name(table_type: str) -> str:
         return {
-            'public': 'public.games',
+            'public': 'public.steam_game',
             'staging': 'staging.game',
         }.get(table_type, '')
 

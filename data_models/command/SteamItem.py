@@ -13,7 +13,7 @@ class SteamItem(BasePersistenceModel, name='steam_item'):
     @staticmethod
     def table_name(table_type: str) -> str:
         return {
-            'public': 'public.items_steam',
+            'public': 'public.steam_item',
             'staging_inventory': 'staging.steam_item_from_inventory',
             'staging_profile_game_cards': 'staging.steam_item_from_profile_game_cards',
             'item_type': 'public.steam_item_type',
@@ -94,9 +94,9 @@ class SteamItem(BasePersistenceModel, name='steam_item'):
         
         {self._insert_trading_card(
             staging_table=staging,
-            public_table=public_trading_card,
+            public_table=public,
+            public_trading_card_table=public_trading_card,
             public_game_table=public_game,
-            public_item_table=public,
         )}
         
         TRUNCATE TABLE {staging};
@@ -157,7 +157,7 @@ class SteamItem(BasePersistenceModel, name='steam_item'):
         -- upserting new items
         INSERT INTO {public_table} (
               game_id
-            , item_steam_type_id
+            , steam_item_type_id
             , name
             , market_url_name
         )
@@ -171,7 +171,7 @@ class SteamItem(BasePersistenceModel, name='steam_item'):
         ON CONFLICT (game_id, market_url_name)
         DO UPDATE
         SET
-            item_steam_type_id = EXCLUDED.item_steam_type_id,
+            steam_item_type_id = EXCLUDED.steam_item_type_id,
             name = EXCLUDED.name;
         
         DROP TABLE tmp_staging;
@@ -217,11 +217,11 @@ class SteamItem(BasePersistenceModel, name='steam_item'):
     def _insert_trading_card(
         staging_table: str,
         public_table: str,
-        public_item_table: str,
+        public_trading_card_table: str,
         public_game_table: str,
     ) -> str:
         return f"""
-        INSERT INTO {public_table} (
+        INSERT INTO {public_trading_card_table} (
         	  item_id
         	, game_id 
         	, set_number 
@@ -234,7 +234,7 @@ class SteamItem(BasePersistenceModel, name='steam_item'):
         	, s.foil AS foil
         FROM {staging_table} s
         INNER JOIN {public_game_table} g ON g.market_id = s.game_market_id
-        INNER JOIN {public_item_table} is2
+        INNER JOIN {public_table} is2
         	ON is2.game_id = g.id AND is2.market_url_name = s.market_url_name
        	WHERE set_number != 0;
         """
