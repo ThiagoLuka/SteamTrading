@@ -1,10 +1,26 @@
-
-from data_models.command.BasePersistenceModel import BasePersistenceModel
+from data_models.command import (
+    BasePersistenceModel,
+    BuyOrder,
+    Game,
+    SellListing,
+    SteamAsset,
+    SteamBadge,
+    SteamItem,
+)
 
 
 class PersistToDB:
 
     @staticmethod
-    def persist(data_type: str, data: list[dict], *args, **kwargs):
-        data_persistence_object = BasePersistenceModel.models[data_type]
-        data_persistence_object(data).save(*args, **kwargs)
+    def persist(data_type: str, source: str, data: list[dict] = None, **kwargs):
+        data_persistence_reference = {
+            'game': Game,
+            'steam_item': SteamItem,
+            'steam_badge': SteamBadge,
+            'steam_asset': SteamAsset,
+            'buy_order': BuyOrder,
+            'sell_listing': SellListing,
+        }.get(data_type, BasePersistenceModel)
+        data_persistence_reference(
+            data=data
+        ).save(source=source, **kwargs)

@@ -98,9 +98,8 @@ class CreateBuyOrders:
         )
         response_content = result.json()
         if response_content['success'] == 1:
-            PersistToDB.persist(
-                'buy_order',
-                [{
+            PersistToDB.persist('buy_order', source='create_buy_order',
+                data=[{
                     'item_id': item_id,
                     'steam_buy_order_id': response_content['buy_orderid'],
                     'quantity': qtd,

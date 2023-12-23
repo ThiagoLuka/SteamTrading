@@ -3,11 +3,9 @@ from .BasePersistenceModel import BasePersistenceModel
 
 class SteamAsset(BasePersistenceModel, name='steam_asset'):
 
-    def save(self, user_id: int):
-        self._df['user_id'] = user_id
-        self._df.drop_duplicates(subset=['steam_asset_id', 'user_id'], inplace=True)
-        self._insert_into_staging(df=self._df, staging_table_name=self.table_name(table_type='staging'))
-        self._transfer_staging_to_public()
+    def save(self, source: str, **kwargs):
+        if source == 'inventory':
+            self._load_standard(user_id=kwargs['user_id'])
 
     @staticmethod
     def table_name(table_type: str) -> str:
@@ -16,14 +14,10 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
             'staging': 'staging.steam_asset',
         }.get(table_type, '')
 
-    @staticmethod
-    def table_columns(table_type: str) -> list:
-        return {
-            'public': ['id', 'item_steam_id', 'user_id', 'asset_id', 'marketable', 'created_at', 'removed_at'],
-            'staging': ['class_id', 'user_id', 'asset_id', 'marketable'],
-        }.get(table_type, [])
-
-    def _transfer_staging_to_public(self) -> None:
+    def _load_standard(self, user_id: int) -> None:
+        self._df['user_id'] = user_id
+        self._df.drop_duplicates(subset=['steam_asset_id', 'user_id'], inplace=True)
+        self._insert_into_staging(df=self._df, staging_table_name=self.table_name(table_type='staging'))
         query = self._upsert_all_assets_query()
         self._db_execute(query=query)
 

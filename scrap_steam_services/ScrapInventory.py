@@ -39,23 +39,19 @@ class ScrapInventory:
         GenericUI.progress_completed(progress=0, total=1, text=progress_text)
 
         games_found_in_inventory = inventory_cleaner.get_game_info()
-        PersistToDB.persist(
-            'game',
-            games_found_in_inventory,
-            source='inventory'
+        PersistToDB.persist('game', source='inventory',
+            data=games_found_in_inventory,
+            update_game_name=True,
         )
 
         steam_items_found_in_inventory = inventory_cleaner.get_steam_item_info()
-        PersistToDB.persist(
-            'steam_item',
-            steam_items_found_in_inventory,
-            source='inventory',
+        PersistToDB.persist('steam_item', source='inventory',
+            data=steam_items_found_in_inventory,
         )
 
         assets_found_in_inventory = inventory_cleaner.get_asset_info()
-        PersistToDB.persist(
-            'steam_asset',
-            assets_found_in_inventory,
+        PersistToDB.persist('steam_asset', source='inventory',
+            data=assets_found_in_inventory,
             user_id=self.__steam_user.user_id,
         )
 

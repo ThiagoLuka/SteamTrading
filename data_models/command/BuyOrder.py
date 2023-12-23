@@ -3,10 +3,11 @@ from .BasePersistenceModel import BasePersistenceModel
 
 class BuyOrder(BasePersistenceModel, name='buy_order'):
 
-    def save(self, user_id: int, empty_buy_order: bool = False) -> None:
-        self._df['user_id'] = user_id
-        self._insert_into_staging(df=self._df, staging_table_name=self.table_name(table_type='staging'))
-        self._transfer_staging_to_public(empty_buy_order=empty_buy_order)
+    def save(self, source: str, **kwargs) -> None:
+        if   source == 'market_item_page':
+            self._load_standard(user_id=kwargs['user_id'], empty_buy_order=kwargs['empty_buy_order'])
+        elif source == 'create_buy_order':
+            self._load_standard(user_id=kwargs['user_id'], empty_buy_order=False)
 
     @staticmethod
     def table_name(table_type: str) -> str:
@@ -15,21 +16,10 @@ class BuyOrder(BasePersistenceModel, name='buy_order'):
             'staging': 'staging.buy_order',
         }.get(table_type, '')
 
-    @staticmethod
-    def table_columns(table_type: str) -> list:
-        return {
-            'public': [
-                'buy_order_id', 'steam_buy_order_id', 'user_id', 'item_steam_id', 'active', 'price',
-                'qtd_start', 'qtd_estimate', 'qtd_current', 'created_at', 'updated_at', 'removed_at'
-            ],
-            'staging': ['steam_buy_order_id', 'item_id', 'user_id', 'price', 'quantity', 'created_at'],
-        }.get(table_type, [])
-
-    def _transfer_staging_to_public(self, empty_buy_order: bool) -> None:
-        if empty_buy_order:
-            query = self._empty_buy_order_query()
-        else:
-            query = self._upsert_buy_order_query()
+    def _load_standard(self, user_id: int, empty_buy_order: bool) -> None:
+        self._df['user_id'] = user_id
+        self._insert_into_staging(df=self._df, staging_table_name=self.table_name(table_type='staging'))
+        query = self._empty_buy_order_query() if empty_buy_order else self._upsert_buy_order_query()
         self._db_execute(query=query)
 
     def _empty_buy_order_query(self) -> str:

@@ -45,10 +45,8 @@ class ScrapProfileGameCardsPage:
             # verify if page has cards (it might not!)
             if page_cleaner.page_has_no_cards():
                 print(f"\n{game_name} has no cards.")
-                PersistToDB.persist(
-                    'game',
-                    [{'game_id': game_name}],
-                    source='update_has_no_trading_cards'
+                PersistToDB.persist('game', source='set_has_no_trading_cards',
+                    game_id=game_id,
                 )
                 GenericUI.progress_completed(progress=index + 1, total=progress_total, text=progress_text)
                 continue
@@ -92,10 +90,8 @@ class ScrapProfileGameCardsPage:
                     'foil': False,
                 })
 
-            PersistToDB.persist(
-                'steam_item',
-                [booster_pack, *trading_cards],
-                source='profile_game_cards',
+            PersistToDB.persist('steam_item', source='profile_game_cards',
+                data=[booster_pack, *trading_cards],
             )
 
             GenericUI.progress_completed(progress=index + 1, total=progress_total, text=progress_text)

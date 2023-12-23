@@ -26,10 +26,6 @@ class BasePersistenceModel:
         pass
 
     @staticmethod
-    def table_columns(table_type: str) -> list:
-        pass
-
-    @staticmethod
     def _db_execute(query: str) -> None:
         return DBController.execute(query=query)
 

@@ -33,15 +33,13 @@ class ScrapProfileBadgesPage:
             badges_found += page_cleaner.get_badges_info()
             GenericUI.progress_completed(progress=index+1, total=number_of_pages, text=progress_text)
 
-        PersistToDB.persist(
-            'game',
-            games_found_in_badges_page,
-            source='profile_badge',
+        PersistToDB.persist('game', source='profile_badge',
+            data=games_found_in_badges_page,
+            update_game_name=False,
         )
 
-        PersistToDB.persist(
-            'steam_badge',
-            badges_found,
+        PersistToDB.persist('steam_badge', source='profile_badge',
+            data=badges_found,
             user_id=self.__steam_user.user_id,
         )
 

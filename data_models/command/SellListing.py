@@ -3,11 +3,9 @@ from .BasePersistenceModel import BasePersistenceModel
 
 class SellListing(BasePersistenceModel, name='sell_listing'):
 
-    def save(self, user_id: int) -> None:
-        self._df['user_id'] = user_id
-        self._df.drop_duplicates(subset='steam_sell_listing_id', inplace=True)
-        self._insert_into_staging(df=self._df, staging_table_name=self.table_name(table_type='staging'))
-        self._transfer_staging_to_public()
+    def save(self, source: str, **kwargs) -> None:
+        if source == 'main_market_page':
+            self._load_standard(user_id=kwargs['user_id'])
 
     @staticmethod
     def table_name(table_type: str) -> str:
@@ -16,20 +14,10 @@ class SellListing(BasePersistenceModel, name='sell_listing'):
             'staging': 'staging.sell_listing',
         }.get(table_type, '')
 
-    @staticmethod
-    def table_columns(table_type: str) -> list:
-        return {
-            'public': [
-                'id', 'steam_sell_listing_id', 'asset_id', 'user_id', 'active', 'price_buyer', 'price_to_receive',
-                'steam_created_at', 'created_at', 'removed_at'
-            ],
-            'staging': [
-                'steam_sell_listing_id', 'steam_asset_id', 'user_id', 'price_buyer', 'price_to_receive',
-                'steam_created_at', 'created_at'
-            ],
-        }.get(table_type, [])
-
-    def _transfer_staging_to_public(self) -> None:
+    def _load_standard(self, user_id: int):
+        self._df['user_id'] = user_id
+        self._df.drop_duplicates(subset='steam_sell_listing_id', inplace=True)
+        self._insert_into_staging(df=self._df, staging_table_name=self.table_name(table_type='staging'))
         query = self._upsert_sell_listings_query()
         self._db_execute(query=query)
 

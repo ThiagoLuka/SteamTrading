@@ -36,9 +36,8 @@ class ScrapMarketItemPage:
                         cleaned_data = market_item_page_cleaner.get_buy_order()
                         empty_buy_order = not any(cleaned_data.values())
                         cleaned_data['item_id'] = item['item_id']
-                        PersistToDB.persist(
-                            'buy_order',
-                            [cleaned_data],
+                        PersistToDB.persist('buy_order', source='market_item_page',
+                            data=[cleaned_data],
                             user_id=self.__steam_user.user_id,
                             empty_buy_order=empty_buy_order
                         )

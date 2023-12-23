@@ -4,11 +4,10 @@ from .BasePersistenceModel import BasePersistenceModel
 class SteamItem(BasePersistenceModel, name='steam_item'):
 
     def save(self, source: str) -> None:
-        persist_method = {
-            'inventory': self._load_from_inventory,
-            'profile_game_cards': self._load_from_profile_game_cards
-        }.get(source)
-        persist_method()
+        if   source == 'inventory':
+            self._load_from_inventory()
+        elif source == 'profile_game_cards':
+            self._load_from_profile_game_cards()
 
     @staticmethod
     def table_name(table_type: str) -> str:
@@ -20,17 +19,6 @@ class SteamItem(BasePersistenceModel, name='steam_item'):
             'description': 'public.steam_item_description',
             'trading_card': 'public.steam_trading_card',
         }.get(table_type, '')
-
-    @staticmethod
-    def table_columns(table_type: str) -> list:
-        return {
-            'public': ['id', 'game_id', 'item_steam_type_id', 'name', 'market_url_name'],
-            'staging_inventory': ['game_market_id', 'market_url_name', 'name', 'steam_item_type_id', 'steam_item_type_name', 'class_id'],
-            'staging_profile_game_cards': ['game_market_id', 'market_url_name', 'name', 'steam_item_type_id', 'set_number', 'foil'],
-            'item_type': ['id', 'name'],
-            'description': ['item_steam_id', 'class_id'],
-            'trading_card': ['id', 'item_steam_id', 'game_id', 'set_number', 'foil'],
-        }.get(table_type, [])
 
     def _load_from_inventory(self) -> None:
         self._df.drop_duplicates(subset=['game_market_id', 'market_url_name'], inplace=True)

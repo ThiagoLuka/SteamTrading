@@ -23,9 +23,8 @@ class ScrapMarketMainPage:
 
         cleaned_data = listings_cleaner.clean()
 
-        PersistToDB.persist(
-            'sell_listing',
-            cleaned_data,
+        PersistToDB.persist('sell_listing', source='main_market_page',
+            data=cleaned_data,
             user_id=self.__steam_user.user_id,
         )
 

@@ -3,10 +3,9 @@ from .BasePersistenceModel import BasePersistenceModel
 
 class SteamBadge(BasePersistenceModel, name='steam_badge'):
 
-    def save(self, user_id: int) -> None:
-        self._df['user_id'] = user_id
-        self._insert_into_staging(df=self._df, staging_table_name=self.table_name(table_type='staging'))
-        self._transfer_staging_to_public()
+    def save(self, source: str, **kwargs) -> None:
+        if source == 'profile_badge':
+            self._load_standard(user_id=kwargs['user_id'])
 
     @staticmethod
     def table_name(table_type: str) -> str:
@@ -17,16 +16,9 @@ class SteamBadge(BasePersistenceModel, name='steam_badge'):
             'public_user_badge': 'public.user_badges',
         }.get(table_type, '')
 
-    @staticmethod
-    def table_columns(table_type: str) -> list:
-        return {
-            'staging': ['name', 'level', 'foil', 'user_id', 'game_market_id', 'pure_badge_page_id', 'experience', 'unlocked_at'],
-            'public_game_badge': ['id', 'game_id', 'name', 'level', 'foil'],
-            'public_pure_badge': ['id', 'page_id', 'name'],
-            'public_user_badge': ['id', 'user_id', 'game_badge_id', 'pure_badge_id', 'experience', 'unlocked_at', 'active'],
-        }.get(table_type, [])
-
-    def _transfer_staging_to_public(self) -> None:
+    def _load_standard(self, user_id: int):
+        self._df['user_id'] = user_id
+        self._insert_into_staging(df=self._df, staging_table_name=self.table_name(table_type='staging'))
         query = self._upsert_badge_full_query()
         self._db_execute(query=query)
 
