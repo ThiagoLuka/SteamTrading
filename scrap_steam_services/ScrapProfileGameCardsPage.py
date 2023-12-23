@@ -45,7 +45,7 @@ class ScrapProfileGameCardsPage:
             # verify if page has cards (it might not!)
             if page_cleaner.page_has_no_cards():
                 print(f"\n{game_name} has no cards.")
-                PersistToDB.persist('game', source='set_has_no_trading_cards',
+                PersistToDB.persist('game', source='profile_game_cards',
                     game_id=game_id,
                 )
                 GenericUI.progress_completed(progress=index + 1, total=progress_total, text=progress_text)

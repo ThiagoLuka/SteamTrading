@@ -8,7 +8,7 @@ class Game(BasePersistenceModel, name='game'):
             self._load_standard(update_game_name=kwargs['update_game_name'])
         elif source == 'profile_badge':
             self._load_standard(update_game_name=kwargs['update_game_name'])
-        elif source == 'set_has_no_trading_cards':
+        elif source == 'profile_game_cards':
             self._set_has_no_trading_cards(game_id=kwargs['game_id'])
 
     @staticmethod
