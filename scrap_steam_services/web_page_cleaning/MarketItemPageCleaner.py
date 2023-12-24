@@ -23,7 +23,7 @@ class MarketItemPageCleaner:
         if not buy_order.find_class('market_listing_price'):
             return {
                 'steam_buy_order_id': None,
-                'quantity': None,
+                'quantity': 0,
                 'price': None,
             }
 

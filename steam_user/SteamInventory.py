@@ -15,7 +15,7 @@ class SteamInventory:
         return self._df.copy()
 
     def reload_current(self) -> None:
-        columns = ['id', 'game_id', 'item_steam_id', 'steam_asset_id', 'marketable', 'created_at']
+        columns = ['id', 'game_id', 'item_steam_id', 'steam_asset_id', 'origin', 'origin_price', 'marketable', 'created_at']
         db_data = QueryDB.get_repo('inventory').get_current_inventory(user_id=self._user_id)
         self._df = pd.DataFrame(db_data, columns=columns)
 
@@ -57,3 +57,10 @@ class SteamInventory:
             by=['game_id', 'item_steam_id']
         ).agg({'steam_asset_id': lambda x: x.tolist()})
         return df_grouped.to_dict()['steam_asset_id']
+
+    def get_game_ids_with_most_undefined(self, quantity: int) -> list[int]:
+        df = self.df
+        undefined = df[df['origin'] == 'Undefined']
+        undefined_game_count = undefined['game_id'].value_counts()
+        game_ids = list(undefined_game_count.iloc[0:quantity].index)
+        return game_ids

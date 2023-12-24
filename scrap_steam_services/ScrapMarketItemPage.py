@@ -20,6 +20,7 @@ class ScrapMarketItemPage:
     def update_games_buy_orders(self, game_ids: list[int]) -> None:
         games = SteamGames(game_ids=game_ids, with_items=True)
         for index, game_id in enumerate(game_ids):
+            self.__steam_user.update_inventory()
             progress_text = f"{index+1:02d} - {games.name(game_id=game_id)}"
             GenericUI.progress_completed(progress=0, total=1, text=progress_text)
             item_keys = ['item_id', 'item_name', 'item_market_url_name']
@@ -36,11 +37,18 @@ class ScrapMarketItemPage:
                         cleaned_data = market_item_page_cleaner.get_buy_order()
                         empty_buy_order = not any(cleaned_data.values())
                         cleaned_data['item_id'] = item['item_id']
+
+                        PersistToDB.persist('steam_asset', source='market_item_page',
+                            user_id=self.__steam_user.user_id,
+                            item_id=item['item_id'],
+                            buy_order_new_quantity=cleaned_data['quantity'],
+                        )
                         PersistToDB.persist('buy_order', source='market_item_page',
                             data=[cleaned_data],
                             user_id=self.__steam_user.user_id,
                             empty_buy_order=empty_buy_order
                         )
+
                         GenericUI.progress_completed(progress=index2+1, total=len(items), text=progress_text)
                         break
                     except Exception as error:

@@ -13,6 +13,8 @@ class SteamInventoryRepository(BaseQueryRepository):
             , is2.game_id
             , isa.item_id
             , isa.steam_asset_id
+            , isa.origin
+            , isa.origin_price
             , isa.marketable
             , isa.created_at
         FROM {inventory} isa

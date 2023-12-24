@@ -1,3 +1,5 @@
+import random
+
 from user_interfaces.GenericUI import GenericUI
 from user_interfaces.SteamTraderUI import SteamTraderUI
 from steam_user_trader.SteamUserTrader import SteamUserTrader
@@ -42,7 +44,11 @@ class SteamTraderController:
 
     def update_buy_orders(self) -> None:
         n_games_to_update = SteamTraderUI.update_buy_orders_prompt_message()
-        game_ids = self._steam_trader.buy_orders.get_game_ids_with_most_outdated_orders(quantity=n_games_to_update)
+        qtd = int(n_games_to_update/2)
+        game_ids_0 = self._steam_trader.buy_orders.get_game_ids_with_most_outdated_orders(quantity=qtd)
+        game_ids_1 = self._steam_trader.inventory.get_game_ids_with_most_undefined(quantity=qtd)
+        game_ids = list(set(game_ids_0 + game_ids_1))
+        random.shuffle(game_ids)
         self._steam_trader.update_buy_orders(game_ids=game_ids)
 
     def update_sell_listings(self) -> None:
