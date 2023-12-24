@@ -35,9 +35,6 @@ class ScrapInventory:
         return bps_in_inventory
 
     def _save_to_db(self, inventory_cleaner: InventoryCleaner) -> None:
-        progress_text = 'Cleaning and saving data'
-        GenericUI.progress_completed(progress=0, total=1, text=progress_text)
-
         games_found_in_inventory = inventory_cleaner.get_game_info()
         PersistToDB.persist('game', source='inventory',
             data=games_found_in_inventory,
@@ -54,8 +51,6 @@ class ScrapInventory:
             data=assets_found_in_inventory,
             user_id=self.__steam_user.user_id,
         )
-
-        GenericUI.progress_completed(progress=1, total=1, text=progress_text)
 
     def _full_extraction(self) -> InventoryCleaner:
         inventory_cleaner = InventoryCleaner()
