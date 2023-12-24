@@ -8,12 +8,12 @@ from steam_games import SteamGames
 from data_models import PersistToDB
 
 if TYPE_CHECKING:
-    from steam_user.SteamUser import SteamUser
+    from steam_user_trader.SteamUserTrader import SteamUserTrader
 
 
 class ScrapMarketItemPage:
 
-    def __init__(self, steam_user: SteamUser):
+    def __init__(self, steam_user: SteamUserTrader):
         self.__steam_user = steam_user
         self.__retries = 4
 
@@ -38,11 +38,13 @@ class ScrapMarketItemPage:
                         empty_buy_order = not any(cleaned_data.values())
                         cleaned_data['item_id'] = item['item_id']
 
-                        PersistToDB.persist('steam_asset', source='market_item_page',
-                            user_id=self.__steam_user.user_id,
-                            item_id=item['item_id'],
-                            buy_order_new_quantity=cleaned_data['quantity'],
-                        )
+                        last_buy_order_was_wrongfully_set_to_empty = cleaned_data['quantity'] > self.__steam_user.buy_orders.active_quantity(item_id=item['item_id'])
+                        if not last_buy_order_was_wrongfully_set_to_empty:
+                            PersistToDB.persist('steam_asset', source='market_item_page',
+                                user_id=self.__steam_user.user_id,
+                                item_id=item['item_id'],
+                                buy_order_new_quantity=cleaned_data['quantity'],
+                            )
                         PersistToDB.persist('buy_order', source='market_item_page',
                             data=[cleaned_data],
                             user_id=self.__steam_user.user_id,

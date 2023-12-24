@@ -17,6 +17,11 @@ class BuyOrders:
     def df(self) -> pd.DataFrame:
         return self._df_active.copy()
 
+    def active_quantity(self, item_id: int) -> int:
+        df = self._df_active
+        qtd = 0 if item_id not in df['item_id'].values else df.loc[df['item_id'] == item_id, 'qtd_current'].iloc[0]
+        return qtd
+
     def reload_current(self) -> None:
         columns = ['id', 'game_id', 'item_id', 'steam_id', 'price', 'qtd_start', 'qtd_current', 'created_at', 'updated_at', 'removed_at']
         db_data = QueryDB.get_repo('buy_order').get_current_buy_orders(user_id=self._user_id)
