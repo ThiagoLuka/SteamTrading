@@ -52,7 +52,7 @@ class SteamGames:
         """:return [{item_key: value, item_key: value}, {...}]"""
         df = self._df_items[self._df_items['id'] == game_id]
         if item_keys is None:
-            item_keys = ['item_id', 'item_name', 'item_market_url_name', 'set_number']
+            item_keys = ['item_id', 'item_name', 'item_market_url_name', 'steam_item_name_id', 'set_number']
         tcs = df[df['steam_item_type'] == 'Trading Card'].sort_values(by='set_number')
         if foil is not None:
             tcs = tcs[tcs['foil'] == foil]
@@ -64,7 +64,7 @@ class SteamGames:
     def _load_data(self, game_ids: list, with_items: bool) -> None:
         self._with_items = with_items
         columns = ['id', 'name', 'market_id', 'has_trading_cards']
-        item_cols = ['item_id', 'item_name', 'steam_item_type', 'item_market_url_name', 'set_number', 'foil']
+        item_cols = ['item_id', 'item_name', 'steam_item_type', 'item_market_url_name', 'steam_item_name_id', 'set_number', 'foil']
         db_data = QueryDB.get_repo('games').get_all_games_by_ids(ids=game_ids, with_items=with_items)
         if with_items:
             self._df_items = pd.DataFrame(db_data, columns=columns + item_cols)

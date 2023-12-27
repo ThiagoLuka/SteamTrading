@@ -3,11 +3,13 @@ from .BasePersistenceModel import BasePersistenceModel
 
 class SteamItem(BasePersistenceModel, name='steam_item'):
 
-    def save(self, source: str) -> None:
+    def save(self, source: str, **kwargs) -> None:
         if   source == 'inventory':
             self._load_from_inventory()
         elif source == 'profile_game_cards':
             self._load_from_profile_game_cards()
+        elif source == 'market_item_page':
+            self._set_steam_item_name_id(item_id=kwargs['item_id'], steam_item_name_id=kwargs['steam_item_name_id'])
 
     @staticmethod
     def table_name(table_type: str) -> str:
@@ -30,6 +32,15 @@ class SteamItem(BasePersistenceModel, name='steam_item'):
         self._df.drop_duplicates(subset=['game_market_id', 'market_url_name'], inplace=True)
         self._insert_into_staging(df=self._df, staging_table_name=self.table_name(table_type='staging_profile_game_cards'))
         query = self._upsert_from_profile_game_cards_full_query()
+        self._db_execute(query=query)
+
+    def _set_steam_item_name_id(self, item_id: int, steam_item_name_id: str) -> None:
+        public = self.table_name(table_type='public')
+        query = f"""
+        UPDATE {public}
+        SET steam_item_name_id = {steam_item_name_id}
+        WHERE id = {item_id};
+        """
         self._db_execute(query=query)
 
     def _upsert_from_inventory_full_query(self) -> str:

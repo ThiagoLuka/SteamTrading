@@ -92,6 +92,7 @@ CREATE TABLE IF NOT EXISTS public.steam_item (
 	, steam_item_type_id int4 NOT NULL
 	, "name" text NOT NULL
 	, market_url_name text NOT NULL
+	, steam_item_name_id text NULL
 	, CONSTRAINT steam_item_pkey PRIMARY KEY (id)
 	, CONSTRAINT unique_steam_item UNIQUE (game_id, market_url_name)
 	, CONSTRAINT steam_item_game_id_fkey FOREIGN KEY (game_id) REFERENCES public.games(id)

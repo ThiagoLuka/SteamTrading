@@ -1,3 +1,5 @@
+import re
+
 from lxml import html
 
 
@@ -37,3 +39,11 @@ class MarketItemPageCleaner:
             'quantity': quantity,
             'price': price,
         }
+
+    def get_item_name_id(self) -> str:
+        end_of_page_hidden_elems = self.__page.get_element_by_id('responsive_page_template_content')
+        js_script_elem = end_of_page_hidden_elems.getchildren()[-1]
+        regex_match = re.search('ItemActivityTicker.Start\( [0-9]+ \)', js_script_elem.text_content())
+        function_call_str = js_script_elem.text_content()[regex_match.start():regex_match.end()]
+        item_name_id = function_call_str.split()[1]
+        return item_name_id

@@ -41,6 +41,7 @@ class SteamGamesRepository(BaseQueryRepository):
             , is2.name AS item_name
             , ist.name AS steam_item_type
             , is2.market_url_name AS item_market_url_name
+            , is2.steam_item_name_id
             , itc.set_number
             , itc.foil
         FROM {game} g

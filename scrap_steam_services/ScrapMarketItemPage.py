@@ -15,7 +15,7 @@ class ScrapMarketItemPage:
 
     def __init__(self, steam_user: SteamUserTrader):
         self.__steam_user = steam_user
-        self.__retries = 4
+        self.__retries = 5
 
     def update_games_buy_orders(self, game_ids: list[int]) -> None:
         games = SteamGames(game_ids=game_ids, with_items=True)
@@ -37,6 +37,7 @@ class ScrapMarketItemPage:
                         cleaned_data = market_item_page_cleaner.get_buy_order()
                         empty_buy_order = not any(cleaned_data.values())
                         cleaned_data['item_id'] = item['item_id']
+                        steam_item_name_id = market_item_page_cleaner.get_item_name_id()
 
                         last_buy_order_was_wrongfully_set_to_empty = cleaned_data['quantity'] > self.__steam_user.buy_orders.active_quantity(item_id=item['item_id'])
                         if not last_buy_order_was_wrongfully_set_to_empty:
@@ -45,6 +46,10 @@ class ScrapMarketItemPage:
                                 item_id=item['item_id'],
                                 buy_order_new_quantity=cleaned_data['quantity'],
                             )
+                        PersistToDB.persist('steam_item', source='market_item_page',
+                            item_id=item['item_id'],
+                            steam_item_name_id=steam_item_name_id,
+                        )
                         PersistToDB.persist('buy_order', source='market_item_page',
                             data=[cleaned_data],
                             user_id=self.__steam_user.user_id,
