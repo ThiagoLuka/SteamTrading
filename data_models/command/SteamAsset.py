@@ -12,6 +12,13 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
                 item_id=kwargs['item_id'],
                 new_quantity=kwargs['buy_order_new_quantity'],
             )
+        elif source == 'create_sell_listing':
+            self._set_destination_price_from_create_sell_listing(
+                user_id=kwargs['user_id'],
+                steam_asset_id=kwargs['steam_asset_id'],
+                price=kwargs['price'],
+                manual=kwargs['manual'],
+            )
 
     @staticmethod
     def table_name(table_type: str) -> str:
@@ -28,7 +35,26 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         self._db_execute(query=query)
 
     def _set_origin_price_from_buy_order_update(self, user_id: int, item_id: int, new_quantity: int) -> None:
-        query = self._set_origin_price_from_buy_order_query(user_id=user_id, item_id=item_id, new_quantity=new_quantity)
+        public = self.table_name(table_type='public')
+        public_buy_order = self.models['buy_order'].table_name(table_type='public')
+        query = self._set_origin_price_from_buy_order_query(
+            public_table=public,
+            public_buy_order_table=public_buy_order,
+            user_id=user_id,
+            item_id=item_id,
+            new_quantity=new_quantity,
+        )
+        self._db_execute(query=query)
+
+    def _set_destination_price_from_create_sell_listing(self, user_id: int, steam_asset_id: str, price: int, manual: bool) -> None:
+        public = self.table_name(table_type='public')
+        query = self._set_destination_price_from_create_sell_listing_query(
+            public_table=public,
+            user_id=user_id,
+            steam_asset_id=steam_asset_id,
+            price=price,
+            manual=manual
+        )
         self._db_execute(query=query)
 
     def _upsert_all_assets_query(self) -> str:
@@ -138,7 +164,7 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         	, tradable
         	, 'Undefined' AS origin
         	, 0 AS origin_price
-        	, 'Unknown' AS destination
+        	, 'Undefined' AS destination
         	, 0 AS destination_price
         	, created_at
         	, NULL AS removed_at
@@ -156,19 +182,19 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         DROP TABLE tmp_staging;
         """
 
+    @staticmethod
     def _set_origin_price_from_buy_order_query(
-        self,
+        public_table: str,
+        public_buy_order_table: str,
         user_id: int,
         item_id: int,
         new_quantity: int
     ) -> str:
-        public = self.table_name(table_type='public')
-        public_buy_order = self.models['buy_order'].table_name(table_type='public')
         return f"""
         WITH
         	old_buy_order AS (
         		SELECT price, qtd_current
-        		FROM {public_buy_order} bo 
+        		FROM {public_buy_order_table} bo 
         		WHERE 
         			user_id = {user_id}
         			AND item_id = {item_id}
@@ -177,7 +203,7 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         	),
         	assets_to_update AS (
         		SELECT sa.id
-        		FROM {public} sa 
+        		FROM {public_table} sa 
         		WHERE
         			user_id = {user_id}
         			AND item_id = {item_id}
@@ -185,10 +211,31 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         		ORDER BY created_at DESC
         		LIMIT (SELECT qtd_current FROM old_buy_order) - {new_quantity}
         	)
-        UPDATE {public} sa
+        UPDATE {public_table} sa
         SET
         	  origin = 'Buy Order'
         	, origin_price = (SELECT price FROM old_buy_order)
         FROM assets_to_update
         WHERE sa.id = assets_to_update.id;
+        """
+
+    @staticmethod
+    def _set_destination_price_from_create_sell_listing_query(
+        public_table: str,
+        user_id: int,
+        steam_asset_id: str,
+        price: int,
+        manual: bool,
+    ) -> str:
+        destination = 'Sell Listing - M' if manual else 'Sell Listing - A'
+        return f"""
+        UPDATE {public_table}
+        SET
+              destination = '{destination}'
+            , destination_price = {price}
+            , active = False
+            , removed_at = NOW()::TIMESTAMP
+        WHERE
+            user_id = {user_id}
+            AND steam_asset_id = '{steam_asset_id}';
         """
