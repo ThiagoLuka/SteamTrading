@@ -96,7 +96,6 @@ class SteamTraderUI:
     def show_item_all_buy_orders(item: dict, buy_orders: list[dict], reverse: bool = False) -> None:
         if reverse:
             buy_orders.reverse()
-        print(f"\n {item['item_name']}")
         for buy_order in buy_orders:
             SteamTraderUI.show_single_buy_order(item=item, buy_order=buy_order, show_name=False)
 

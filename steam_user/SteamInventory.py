@@ -27,8 +27,9 @@ class SteamInventory:
     def get_all_game_ids(self) -> list[int]:
         return list(self.df['game_id'].drop_duplicates())
 
-    def get_asset_ids(self, item_id: int) -> list:
+    def get_asset_ids(self, item_id: int, marketable: bool = False) -> list:
         df = self.df[self.df['item_steam_id'] == item_id]
+        df = df[df['marketable']] if marketable else df
         return list(df['steam_asset_id'])
 
     def get_game_ids_with_marketable_items(self, game_quantity: int, games_allowed: list) -> list[int]:

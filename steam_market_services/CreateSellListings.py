@@ -48,13 +48,15 @@ class CreateSellListings:
                         game_market_id=game_market_id,
                         item_market_url_name=item_market_url_name
                     )
-                    SteamTraderUI.show_item_all_buy_orders(
-                        item=item,
-                        buy_orders=buy_orders_history[item_id],
-                        reverse=True,
-                    )
+                    SteamTraderUI.show_item_name(item_name=item['item_name'], set_number=item['set_number'])
+                    if item_id in list(buy_orders_history.keys()):
+                        SteamTraderUI.show_item_all_buy_orders(
+                            item=item,
+                            buy_orders=buy_orders_history[item_id],
+                            reverse=True,
+                        )
                     price = SteamTraderUI.set_sell_price_for_item()
-                    asset_ids = self._steam_trader.inventory.get_asset_ids(item_id=item_id)
+                    asset_ids = self._steam_trader.inventory.get_asset_ids(item_id=item_id, marketable=True)
                     self._steam_trader.market_actions_queue.put((
                         'create_sell_listing', {
                             'asset_ids': asset_ids,
