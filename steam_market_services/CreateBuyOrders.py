@@ -35,7 +35,7 @@ class CreateBuyOrders:
             items = games.get_trading_cards_and_booster_pack(game_id=game_id, foil=False)
             buy_orders_history = self._steam_trader.buy_orders.get_recent_history(game_id=game_id)
 
-            SteamTraderUI.buy_orders_header(game_name=game_name, index=idx)
+            SteamTraderUI.game_header_with_counter(game_name=game_name, index=idx)
             SteamTraderUI.show_game_recent_buy_orders(
                 items=items,
                 buy_orders_history=buy_orders_history

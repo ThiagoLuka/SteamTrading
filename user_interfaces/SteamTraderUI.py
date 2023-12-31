@@ -52,6 +52,10 @@ class SteamTraderUI:
         return InputValidation.int_within_range(0, 50, 'How many games do you wish to open booster packs from? ')
 
     @staticmethod
+    def set_manual_option_prompt_message() -> bool:
+        return InputValidation.yes_or_no('Is it going to be manual?')
+
+    @staticmethod
     def show_marketable_items_to_sell_summary(items: list, summary: dict) -> None:
         total_cards = 0
         print('\nItems to sell:')
@@ -82,8 +86,8 @@ class SteamTraderUI:
         print('\nSomething went wrong with the creation of the buy order')
 
     @staticmethod
-    def buy_orders_header(game_name: str, index: int) -> None:
-        print(f'\n {index+1:>2}-Buy orders from: {game_name}')
+    def game_header_with_counter(game_name: str, index: int) -> None:
+        print(f'\n {index+1:>2}- {game_name}')
 
     @staticmethod
     def show_game_recent_buy_orders(items: list[dict], buy_orders_history: dict) -> None:

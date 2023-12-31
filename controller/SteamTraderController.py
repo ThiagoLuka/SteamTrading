@@ -62,4 +62,6 @@ class SteamTraderController:
         self._steam_trader.open_booster_packs(games_quantity=games_quantity)
 
     def create_sell_listings(self) -> None:
-        self._steam_trader.create_sell_listings()
+        manual = SteamTraderUI.set_manual_option_prompt_message()
+        game_quantity = SteamTraderUI.sell_cards_prompt_message()
+        self._steam_trader.create_sell_listings(manual=manual, game_quantity=game_quantity)

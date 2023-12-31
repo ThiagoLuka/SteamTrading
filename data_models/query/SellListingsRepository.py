@@ -26,3 +26,16 @@ class SellListingsRepository(BaseQueryRepository):
         """
         result = cls._db_execute(query=query)
         return result
+
+    @classmethod
+    def get_buyer_to_seller_price_dict(cls) -> list[tuple]:
+        buyer_to_seller_price = cls.query_tables(table_type='buyer_to_seller_price')
+        query = f"""
+        SELECT
+              price_buyer
+            , price_seller
+        FROM {buyer_to_seller_price}
+        ORDER BY price_buyer;
+        """
+        result = cls._db_execute(query=query)
+        return result

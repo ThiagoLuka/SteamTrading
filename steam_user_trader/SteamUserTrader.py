@@ -55,8 +55,8 @@ class SteamUserTrader(SteamUser):
         CreateBuyOrders(steam_trader=self).create_buy_orders()
         self.buy_orders.reload_current()
 
-    def create_sell_listings(self) -> None:
-        CreateSellListings(steam_trader=self).create_sell_listings()
+    def create_sell_listings(self, manual: bool, game_quantity: int) -> None:
+        CreateSellListings(steam_trader=self, manual=manual).create_sell_listings(game_quantity=game_quantity)
         self.sell_listings.reload_current()
 
     def _market_actions_queue_task_handler(self) -> None:
