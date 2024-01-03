@@ -43,6 +43,7 @@ class CreateBuyOrders:
             for idx2, steam_item in enumerate(items):
                 item_id = steam_item['item_id']
                 if item_id in item_ids:
+                    SteamTraderUI.show_item_name(item_name=steam_item['item_name'], set_number=steam_item['set_number'])
                     SteamTraderUI.show_item_all_buy_orders(
                         item=steam_item,
                         buy_orders=buy_orders_history[item_id]
