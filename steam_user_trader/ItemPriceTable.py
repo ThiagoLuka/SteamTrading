@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from steam_user_trader.SteamUserTrader import SteamUserTrader
 
 
-class ItemMarketPrice:
+class ItemPriceTable:
 
     def __init__(self, steam_trader: SteamUserTrader, game_market_id: str, item: dict):
         status, response = steam_trader.web_crawler.interact(
@@ -19,7 +19,10 @@ class ItemMarketPrice:
         time.sleep(5)
         data = response.json()
 
-        self._total_for_sale = int(data['sell_order_summary'].split('>')[1].split('<')[0])
+        if data['sell_order_summary'] == 'There are no active listings for this item.':
+            self._total_for_sale = 0
+        else:
+            self._total_for_sale = int(data['sell_order_summary'].split('>')[1].split('<')[0])
         self._total_buy_orders = int(data['buy_order_summary'].split('>')[1].split('<')[0])
 
         # {price: qtd_at_that_price}
@@ -35,11 +38,11 @@ class ItemMarketPrice:
                     self._sell_orders_discounted[market_price] -= sl_qtd
 
 
-    def highest_buy_order_price(self) -> int:
+    def highest_buy_order_seller_price(self) -> int:
         return max(self._buy_orders.keys())
 
-    def lowest_sell_order_price(self) -> int:
-        return min(self._sell_orders.keys())
+    def lowest_sell_order_seller_price(self) -> int:
+        return min(self._sell_orders.keys()) if self._sell_orders else None
 
     def recommended_seller_price(self) -> int:
         if self._total_for_sale <= 150:
@@ -47,7 +50,7 @@ class ItemMarketPrice:
         return self.regular_total_for_sale_strategy()
 
     def low_total_for_sale_strategy(self) -> int:
-        return self.lowest_sell_order_price()
+        return self.lowest_sell_order_seller_price()
 
     def regular_total_for_sale_strategy(self) -> int:
         for price, qtd in self._sell_orders_discounted.items():

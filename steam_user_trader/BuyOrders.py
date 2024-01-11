@@ -59,16 +59,17 @@ class BuyOrders:
 
     def get_recent_history(self, game_id: int) -> dict:
         """:return {
-            item_id: [{keys: 'price', 'qtd_start', 'qtd_current', 'created_at', 'removed_at', 'days_active'}]
+            item_id: [{keys: 'id', 'steam_id', 'active', 'price', 'qtd_start', 'qtd_current', 'created_at', 'removed_at', 'days_active'}]
         }"""
         result = {}
 
         df = self.df
         df = df[df['game_id'] == game_id].copy()
         df['days_active'] = (datetime.today() - df['created_at']).dt.days
-        df = df[['item_id', 'price', 'qtd_start', 'qtd_current', 'created_at', 'removed_at', 'days_active']].copy()
+        df = df[['item_id', 'steam_id', 'price', 'qtd_start', 'qtd_current', 'created_at', 'removed_at', 'days_active']].copy()
         for item in df.to_dict('records'):
             item_id = item.pop('item_id')
+            item['active'] = True
             result[item_id] = [item]
 
         df = self._df_most_recent_inactive.copy()
@@ -79,6 +80,7 @@ class BuyOrders:
             item_id = item.pop('item_id')
             if item_id not in list(result.keys()):
                 result[item_id] = []
+            item['active'] = False
             result[item_id].append(item)
 
         return result

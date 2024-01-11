@@ -4,7 +4,7 @@ import time
 
 from user_interfaces.SteamTraderUI import SteamTraderUI
 from steam_games import SteamGames
-from steam_user_trader.ItemMarketPrice import ItemMarketPrice
+from steam_user_trader.ItemPriceTable import ItemPriceTable
 from data_models import PersistToDB
 
 if TYPE_CHECKING:
@@ -100,7 +100,7 @@ class CreateSellListings:
             if item['steam_item_name_id'] is None:
                 print('Skipped because item name id not updated yet')
                 continue
-            market_prices = ItemMarketPrice(
+            market_prices = ItemPriceTable(
                 steam_trader=self._steam_trader,
                 game_market_id=games.market_id(game_id=game_id),
                 item=item

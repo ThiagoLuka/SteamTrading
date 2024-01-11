@@ -32,15 +32,28 @@ class SteamTraderUI:
         print(f'Inventory size:   {inv_total_size:>5}')
 
     @staticmethod
+    def create_buy_order_options() -> int:
+        print(
+            '1 - First buy orders of a game\n'
+            '2 - Recreate buy orders of a game\n'
+            '3 - Update empty buy orders'
+        )
+        return InputValidation.int_within_range(1, 3)
+
+    @staticmethod
     def update_buy_orders_prompt_message() -> int:
         return InputValidation.int_within_range(0, 100, 'How many games do you wish to update? ')
 
     @staticmethod
-    def create_first_buy_order_of_game() -> bool:
-        return InputValidation.yes_or_no('First buy order of the game?')
+    def recreate_buy_order_item() -> bool:
+        return InputValidation.yes_or_no("Recreate this item's buy order?")
 
     @staticmethod
-    def create_buy_orders_prompt_message() -> int:
+    def continue_with_recreate_buy_orders() -> bool:
+        return InputValidation.yes_or_no('Continue with another game?')
+
+    @staticmethod
+    def create_buy_orders_for_how_many_outdated_items() -> int:
         return InputValidation.int_within_range(0, 100, 'How many items do you wish to update? ')
 
     @staticmethod
@@ -86,7 +99,11 @@ class SteamTraderUI:
         print('\nSomething went wrong with the creation of the buy order')
 
     @staticmethod
-    def game_header_with_counter(game_name: str, index: int) -> None:
+    def cancel_buy_order_failed() -> None:
+        print('\nSomething went wrong with the creation of the buy order')
+
+    @staticmethod
+    def game_header_with_counter(game_name: str, index: int = 0) -> None:
         print(f'\n {index+1:>2}- {game_name}')
 
     @staticmethod

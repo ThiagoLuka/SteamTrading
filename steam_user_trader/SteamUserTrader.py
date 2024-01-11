@@ -68,7 +68,8 @@ class SteamUserTrader(SteamUser):
             else:
                 task = {
                     'create_sell_listing': CreateSellListings.queue_task,
-                    'create_buy_order': CreateBuyOrders.queue_task,
+                    'create_buy_order': CreateBuyOrders.create_queue_task,
+                    'cancel_buy_order': CreateBuyOrders.cancel_queue_task,
                 }.get(cmd)
                 task(steam_trader=self, **kwargs)
                 self.market_actions_queue.task_done()
