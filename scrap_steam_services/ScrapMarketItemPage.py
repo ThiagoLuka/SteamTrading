@@ -41,7 +41,7 @@ class ScrapMarketItemPage:
 
                         last_buy_order_was_wrongfully_set_to_empty = cleaned_data['quantity'] > self.__steam_user.buy_orders.active_quantity(item_id=item['item_id'])
                         if not last_buy_order_was_wrongfully_set_to_empty:
-                            PersistToDB.persist('steam_asset', source='market_item_page',
+                            PersistToDB.persist('steam_asset_origin', source='buy_order',
                                 user_id=self.__steam_user.user_id,
                                 item_id=item['item_id'],
                                 buy_order_new_quantity=cleaned_data['quantity'],

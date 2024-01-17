@@ -6,12 +6,6 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
     def save(self, source: str, **kwargs):
         if   source == 'inventory':
             self._load_standard(user_id=kwargs['user_id'])
-        elif source == 'market_item_page':
-            self._set_origin_price_from_buy_order_update(
-                user_id=kwargs['user_id'],
-                item_id=kwargs['item_id'],
-                new_quantity=kwargs['buy_order_new_quantity'],
-            )
         elif source == 'create_sell_listing':
             self._set_destination_price_from_create_sell_listing(
                 user_id=kwargs['user_id'],
@@ -32,18 +26,6 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         self._df.drop_duplicates(subset=['steam_asset_id', 'user_id'], inplace=True)
         self._insert_into_staging(df=self._df, staging_table_name=self.table_name(table_type='staging'))
         query = self._upsert_all_assets_query()
-        self._db_execute(query=query)
-
-    def _set_origin_price_from_buy_order_update(self, user_id: int, item_id: int, new_quantity: int) -> None:
-        public = self.table_name(table_type='public')
-        public_buy_order = self.models['buy_order'].table_name(table_type='public')
-        query = self._set_origin_price_from_buy_order_query(
-            public_table=public,
-            public_buy_order_table=public_buy_order,
-            user_id=user_id,
-            item_id=item_id,
-            new_quantity=new_quantity,
-        )
         self._db_execute(query=query)
 
     def _set_destination_price_from_create_sell_listing(self, user_id: int, steam_asset_id: str, price: int, manual: bool) -> None:
@@ -180,43 +162,6 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         	removed_at = EXCLUDED.removed_at;
         
         DROP TABLE tmp_staging;
-        """
-
-    @staticmethod
-    def _set_origin_price_from_buy_order_query(
-        public_table: str,
-        public_buy_order_table: str,
-        user_id: int,
-        item_id: int,
-        new_quantity: int
-    ) -> str:
-        return f"""
-        WITH
-        	old_buy_order AS (
-        		SELECT price, qtd_current
-        		FROM {public_buy_order_table} bo 
-        		WHERE 
-        			user_id = {user_id}
-        			AND item_id = {item_id}
-        		ORDER BY created_at DESC 
-        		LIMIT 1
-        	),
-        	assets_to_update AS (
-        		SELECT sa.id
-        		FROM {public_table} sa 
-        		WHERE
-        			user_id = {user_id}
-        			AND item_id = {item_id}
-        			AND origin = 'Undefined'
-        		ORDER BY created_at DESC
-        		LIMIT (SELECT qtd_current FROM old_buy_order) - {new_quantity}
-        	)
-        UPDATE {public_table} sa
-        SET
-        	  origin = 'Buy Order'
-        	, origin_price = (SELECT price FROM old_buy_order)
-        FROM assets_to_update
-        WHERE sa.id = assets_to_update.id;
         """
 
     @staticmethod

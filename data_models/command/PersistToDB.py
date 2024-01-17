@@ -4,6 +4,7 @@ from data_models.command import (
     Game,
     SellListing,
     SteamAsset,
+    SteamAssetOrigin,
     SteamBadge,
     SteamItem,
 )
@@ -18,6 +19,7 @@ class PersistToDB:
             'steam_item': SteamItem,
             'steam_badge': SteamBadge,
             'steam_asset': SteamAsset,
+            'steam_asset_origin': SteamAssetOrigin,
             'buy_order': BuyOrder,
             'sell_listing': SellListing,
         }.get(data_type, BasePersistenceModel)

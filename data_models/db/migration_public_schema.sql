@@ -1,4 +1,5 @@
 
+--DROP TABLE IF EXISTS public.asset_from_buy_order;
 --DROP TABLE IF EXISTS public.buy_orders;
 --DROP TABLE IF EXISTS public.sell_listing;
 --DROP TABLE IF EXISTS public.item_steam_assets;
@@ -178,4 +179,14 @@ CREATE TABLE IF NOT EXISTS public.buy_order (
 	, CONSTRAINT buy_order_steam_buy_order_id_key UNIQUE (steam_buy_order_id)
 	, CONSTRAINT buy_order_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.items_steam(id)
 	, CONSTRAINT buy_order_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+);
+
+
+-- inventory origin
+CREATE TABLE IF NOT EXISTS public.asset_from_buy_order (
+      asset_id int8 NOT NULL
+    , buy_order_id int4 NOT NULL
+    , CONSTRAINT asset_from_buy_order_asset_id UNIQUE (asset_id)
+    , CONSTRAINT asset_from_buy_order_asset_id_fkey FOREIGN KEY (asset_id) REFERENCES public.steam_asset(id)
+    , CONSTRAINT asset_from_buy_order_buy_order_id_fkey FOREIGN KEY (buy_order_id) REFERENCES public.buy_order(id)
 );
