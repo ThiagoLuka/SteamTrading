@@ -44,9 +44,9 @@ class SteamTraderController:
 
     def update_buy_orders(self) -> None:
         n_games_to_update = SteamTraderUI.update_buy_orders_prompt_message()
-        qtd = int(n_games_to_update/2)
-        game_ids_0 = self._steam_trader.buy_orders.get_game_ids_with_most_outdated_orders(quantity=qtd)
-        game_ids_1 = self._steam_trader.inventory.get_game_ids_with_most_undefined(quantity=qtd)
+        qtd = n_games_to_update/3
+        game_ids_0 = self._steam_trader.buy_orders.get_game_ids_with_most_outdated_orders(quantity=round(2*qtd))
+        game_ids_1 = self._steam_trader.inventory.get_game_ids_with_most_undefined(quantity=round(qtd))
         game_ids = list(set(game_ids_0 + game_ids_1))
         random.shuffle(game_ids)
         self._steam_trader.update_buy_orders(game_ids=game_ids)
