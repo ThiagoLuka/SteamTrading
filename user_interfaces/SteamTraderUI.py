@@ -85,7 +85,7 @@ class SteamTraderUI:
 
     @staticmethod
     def set_buy_order_for_item() -> tuple[int, int]:
-        price = InputValidation.int_within_range(0, 150, f' Price: ')
+        price = InputValidation.int_within_range(3, 150, f' Price: ')
         qtd = InputValidation.int_within_range(50, 200, f' Quantity: ')
         return price, qtd
 
@@ -100,7 +100,7 @@ class SteamTraderUI:
 
     @staticmethod
     def cancel_buy_order_failed() -> None:
-        print('\nSomething went wrong with the creation of the buy order')
+        print('\nSomething went wrong with the cancel of the buy order')
 
     @staticmethod
     def game_header_with_counter(game_name: str, index: int = 0) -> None:
