@@ -14,7 +14,10 @@ class SteamAssetOrigin(BasePersistenceModel, name='steam_asset_origin'):
             )
         elif source == 'open_booster_pack':
             self._from_booster_pack(
-                asset_table=asset_table
+                asset_table=asset_table,
+                user_id=kwargs['user_id'],
+                game_id=kwargs['game_id'],
+                booster_packs_opened=kwargs['booster_packs_opened'],
             )
         elif source == 'remove_sell_listing':
             self._from_sell_listing(
@@ -25,8 +28,7 @@ class SteamAssetOrigin(BasePersistenceModel, name='steam_asset_origin'):
     def table_name(table_type: str) -> str:
         return {
             'asset_from_buy_order': 'public.asset_from_buy_order',
-            'asset_from_booster_pack_origin': '',
-            'asset_from_sell_listing_origin': '',
+            'asset_from_booster_pack': 'public.asset_from_booster_pack',
         }.get(table_type, '')
 
     def _from_buy_order(self, asset_table: str, user_id: int, item_id: int, new_quantity: int) -> None:
@@ -42,8 +44,18 @@ class SteamAssetOrigin(BasePersistenceModel, name='steam_asset_origin'):
         )
         self._db_execute(query=query)
 
-    def _from_booster_pack(self, asset_table: str) -> None:
-        pass
+    def _from_booster_pack(self, asset_table: str, user_id: int, game_id: int, booster_packs_opened: int) -> None:
+        asset_from_booster_pack_table = self.table_name('asset_from_booster_pack')
+        item_table = self.models['steam_item'].table_name(table_type='public')
+        query = self._from_booster_pack_query(
+            asset_from_booster_pack_table=asset_from_booster_pack_table,
+            asset_table=asset_table,
+            item_table=item_table,
+            user_id=user_id,
+            game_id=game_id,
+            booster_packs_opened=booster_packs_opened,
+        )
+        self._db_execute(query=query)
 
     def _from_sell_listing(self, asset_table: str) -> None:
         pass
@@ -102,6 +114,96 @@ class SteamAssetOrigin(BasePersistenceModel, name='steam_asset_origin'):
         	, origin_price = price
         FROM assets_to_update
         WHERE sa.id = assets_to_update.asset_id;
+        
+        DROP TABLE assets_to_update;
+        
+        COMMIT;
+        """
+
+    @staticmethod
+    def _from_booster_pack_query(
+        asset_from_booster_pack_table,
+        asset_table: str,
+        item_table: str,
+        user_id: int,
+        game_id: int,
+        booster_packs_opened: int,
+    ) -> str:
+        return f"""
+        START TRANSACTION;
+        
+        CREATE TEMP TABLE assets_to_update AS
+        WITH 
+        	opened_booster_packs AS (
+        		SELECT 
+        			sa.id AS bp_id,
+        			sa.origin_price,
+        			ROW_NUMBER() OVER (ORDER BY sa.created_at DESC) AS bp_number
+        		FROM {asset_table} sa 
+        		INNER JOIN {item_table} si ON sa.item_id = si.id 
+        		WHERE
+        			not active 
+        			AND user_id = {user_id}
+        			AND si.game_id = {game_id}
+        			AND si.steam_item_type_id = 5  -- booster pack
+        			AND destination = 'Undefined'
+        		LIMIT {booster_packs_opened}
+        	),
+        	cards_from_booster_pack AS (
+        		SELECT
+        			sa.id AS tc_id,
+        			( ( ROW_NUMBER() OVER (ORDER BY sa.created_at DESC) - 1 ) / 3 ) + 1 AS bp_number,
+        			( ROW_NUMBER() OVER (ORDER BY sa.created_at DESC) % 3 ) + 1 AS card_number
+        		FROM {asset_table} sa 
+        		INNER JOIN {item_table} si ON sa.item_id = si.id
+        		WHERE
+        			active
+        			AND user_id = {user_id}
+        			AND si.game_id = {game_id}
+        			AND si.steam_item_type_id = 2 -- trading card
+        			AND origin = 'Undefined'
+        	)
+        SELECT 
+        	obps.bp_id AS booster_pack_asset_id,
+        	cfbp.tc_id AS trading_card_asset_id,
+        	obps.origin_price AS booster_pack_destination_price,
+        	CASE 
+        		WHEN card_number = 1 THEN ( obps.origin_price / 3 ) + ( obps.origin_price % 3 ) 
+        		ELSE obps.origin_price / 3
+        	END AS trading_card_origin_price
+        FROM opened_booster_packs obps
+        INNER JOIN cards_from_booster_pack cfbp ON cfbp.bp_number = obps.bp_number;
+        
+        
+        INSERT INTO {asset_from_booster_pack_table} (
+        	  asset_id
+        	, booster_pack_asset_id
+        )
+        SELECT
+        	  trading_card_asset_id
+        	, booster_pack_asset_id
+        FROM assets_to_update;
+        
+        WITH
+            distinct_booster_pack AS (
+                SELECT
+                    DISTINCT(booster_pack_asset_id) AS asset_id,
+                    booster_pack_destination_price
+                FROM assets_to_update
+            )
+        UPDATE {asset_table} sa
+        SET
+        	  destination = 'Booster Pack opened'
+        	, destination_price = booster_pack_destination_price
+        FROM distinct_booster_pack
+        WHERE sa.id = distinct_booster_pack.asset_id;
+        
+        UPDATE {asset_table} sa
+        SET
+              origin = 'Booster Pack'
+            , origin_price = trading_card_origin_price
+        FROM assets_to_update
+        WHERE sa.id = assets_to_update.trading_card_asset_id;
         
         DROP TABLE assets_to_update;
         

@@ -27,6 +27,14 @@ class SteamInventory:
     def get_all_game_ids(self) -> list[int]:
         return list(self.df['game_id'].drop_duplicates())
 
+    def get_game_ids(self, item_ids: list[int], qtd: int, sort: str = None) -> list[int]:
+        df = self.df[self.df['item_steam_id'].isin(item_ids)]
+        if sort is not None:
+            df.sort_values(by=sort, inplace=True)
+        game_ids_list = list(df['game_id'].drop_duplicates())
+        return game_ids_list[0:qtd]
+
+
     def get_asset_ids(self, item_id: int, marketable: bool = False, origin_undefined: bool = None) -> list:
         df = self.df[self.df['item_steam_id'] == item_id]
         df = df[df['marketable']] if marketable else df
@@ -52,14 +60,6 @@ class SteamInventory:
             'item': dict(df.value_counts(subset='item_steam_id')),
         }.get(by, {})
         return summary_qtd
-
-    def get_steam_asset_ids_by_item_ids(self, item_ids: list[int]) -> dict[tuple[int, int], list]:
-        """:return {(game_id, item_id): [asset_id_0, asset_id_1]}"""
-        df_filtered = self.df[self.df['item_steam_id'].isin(item_ids)]
-        df_grouped = df_filtered.groupby(
-            by=['game_id', 'item_steam_id']
-        ).agg({'steam_asset_id': lambda x: x.tolist()})
-        return df_grouped.to_dict()['steam_asset_id']
 
     def get_game_ids_with_most_undefined(self, quantity: int) -> list[int]:
         df = self.df

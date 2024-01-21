@@ -2,7 +2,7 @@ from threading import Thread
 from queue import Queue, Empty
 
 from scrap_steam_services import ScrapMarketItemPage, ScrapMarketMainPage
-from steam_market_services import CreateBuyOrders, CreateSellListings
+from steam_market_services import CreateBuyOrders, CreateSellListings, OpenGameBoosterPack
 from steam_user.SteamUser import SteamUser
 from steam_user_trader.BuyOrders import BuyOrders
 from steam_user_trader.SellListings import SellListings
@@ -58,6 +58,10 @@ class SteamUserTrader(SteamUser):
     def create_sell_listings(self, manual: bool, game_quantity: int) -> None:
         CreateSellListings(steam_trader=self, manual=manual).create_sell_listings(game_quantity=game_quantity)
         self.sell_listings.reload_current()
+
+    def open_booster_packs(self, games_quantity: int) -> None:
+        OpenGameBoosterPack(steam_user=self).run(games_quantity=games_quantity)
+        self.update_inventory()
 
     def _market_actions_queue_task_handler(self) -> None:
         while True:

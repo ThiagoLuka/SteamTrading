@@ -182,11 +182,19 @@ CREATE TABLE IF NOT EXISTS public.buy_order (
 );
 
 
--- inventory origin
+-- inventory origin tables
 CREATE TABLE IF NOT EXISTS public.asset_from_buy_order (
       asset_id int8 NOT NULL
     , buy_order_id int4 NOT NULL
     , CONSTRAINT asset_from_buy_order_asset_id UNIQUE (asset_id)
     , CONSTRAINT asset_from_buy_order_asset_id_fkey FOREIGN KEY (asset_id) REFERENCES public.steam_asset(id)
     , CONSTRAINT asset_from_buy_order_buy_order_id_fkey FOREIGN KEY (buy_order_id) REFERENCES public.buy_order(id)
+);
+
+CREATE TABLE IF NOT EXISTS public.asset_from_booster_pack (
+      asset_id int8 NOT NULL
+    , booster_pack_asset_id int8 NOT NULL
+    , CONSTRAINT asset_from_booster_pack_asset_id UNIQUE (asset_id)
+    , CONSTRAINT asset_from_booster_pack_asset_id_fkey FOREIGN KEY (asset_id) REFERENCES public.steam_asset(id)
+    , CONSTRAINT asset_from_booster_pack_booster_pack_asset_id_id_fkey FOREIGN KEY (booster_pack_asset_id) REFERENCES public.steam_asset(id)
 );

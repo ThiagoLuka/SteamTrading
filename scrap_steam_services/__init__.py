@@ -1,5 +1,4 @@
 from scrap_steam_services.CheckMarketItemUrlName import CheckMarketItemUrlName
-from scrap_steam_services.OpenGameBoosterPacks import OpenGameBoosterPacks
 from scrap_steam_services.ScrapInventory import ScrapInventory
 from scrap_steam_services.ScrapMarketItemPage import ScrapMarketItemPage
 from scrap_steam_services.ScrapMarketMainPage import ScrapMarketMainPage

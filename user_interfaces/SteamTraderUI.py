@@ -103,6 +103,15 @@ class SteamTraderUI:
         print('\nSomething went wrong with the cancel of the buy order')
 
     @staticmethod
+    def comparing_bp_and_cards_prices() -> None:
+        print('Comparing booster pack and cards prices...')
+
+    @staticmethod
+    def bp_and_card_price_comparison(bp_price: int, card_price: float) -> None:
+        print(f'Booster pack seller price        : {bp_price}\n'
+              f'Average card seller price times 3: {(3*card_price):.2f}\n')
+
+    @staticmethod
     def game_header_with_counter(game_name: str, index: int = 0) -> None:
         print(f'\n {index+1:>2}- {game_name}')
 
