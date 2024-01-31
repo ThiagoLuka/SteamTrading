@@ -34,6 +34,9 @@ class OpenGameBoosterPack:
             items = games.get_trading_cards_and_booster_pack(game_id=game_id, item_keys=item_keys, foil=False)
             tcgs = [item_dict for item_dict in items if item_dict['steam_item_type'] == 'Trading Card']
             bp = [item_dict for item_dict in items if item_dict['steam_item_type'] == 'Booster Pack'][0]
+            bp_assets = self._steam_trader.inventory.get_asset_ids(item_id=bp['item_id'], origin_undefined=False)
+            if not bp_assets:
+                continue
 
             SteamTraderUI.comparing_bp_and_cards_prices()
             bp_seller_price = self._item_seller_price(item=bp, game_market_id=game_market_id)
@@ -43,7 +46,6 @@ class OpenGameBoosterPack:
             if better_to_sell_bp:
                 continue
 
-            bp_assets = self._steam_trader.inventory.get_asset_ids(item_id=bp['item_id'], origin_undefined=False)
             qtd_booster_packs = len(bp_assets)
             progress_text = f"{index + 1:02d} - Opening booster packs"
             GenericUI.progress_completed(progress=0, total=len(bp_assets), text=progress_text)
