@@ -56,3 +56,4 @@ class ItemPriceTable:
         for price, qtd in self._sell_orders_discounted.items():
             if qtd >= 20:
                 return price-1
+        return price
