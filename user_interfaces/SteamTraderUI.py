@@ -41,8 +41,12 @@ class SteamTraderUI:
         return InputValidation.int_within_range(1, 3)
 
     @staticmethod
-    def update_buy_orders_prompt_message() -> int:
-        return InputValidation.int_within_range(0, 100, 'How many games do you wish to update? ')
+    def update_buy_orders_prompt_message(option: str) -> int:
+        option_str = {
+            'outdated': 'Outdated buy order',
+            'undefined': 'Undefined assets',
+        }.get(option, 'No option')
+        return InputValidation.int_within_range(0, 100, f'How many games do you wish to update? ({option_str}) ')
 
     @staticmethod
     def recreate_buy_order_item() -> bool:

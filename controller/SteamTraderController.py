@@ -43,10 +43,10 @@ class SteamTraderController:
         SteamTraderUI.overview_marketable_cards(summary=summary_qtd_by_game, inv_total_size=inventory_size)
 
     def update_buy_orders(self) -> None:
-        n_games_to_update = SteamTraderUI.update_buy_orders_prompt_message()
-        qtd = n_games_to_update/2
-        game_ids_0 = self._steam_trader.buy_orders.get_game_ids_with_most_outdated_orders(quantity=round(qtd))
-        game_ids_1 = self._steam_trader.inventory.get_game_ids_with_most_undefined(quantity=round(qtd))
+        n_games_outdate = SteamTraderUI.update_buy_orders_prompt_message(option='outdated')
+        n_games_undefined = SteamTraderUI.update_buy_orders_prompt_message(option='undefined')
+        game_ids_0 = self._steam_trader.buy_orders.get_game_ids_with_most_outdated_orders(quantity=n_games_outdate)
+        game_ids_1 = self._steam_trader.inventory.get_game_ids_with_most_undefined(quantity=n_games_undefined)
         game_ids = list(set(game_ids_0 + game_ids_1))
         random.shuffle(game_ids)
         self._steam_trader.update_buy_orders(game_ids=game_ids)
