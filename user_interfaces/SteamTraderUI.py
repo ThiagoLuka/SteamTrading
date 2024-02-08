@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from user_interfaces.InputValidation import InputValidation
 
 
@@ -69,6 +71,20 @@ class SteamTraderUI:
         return InputValidation.int_within_range(0, 50, 'How many games do you wish to open booster packs from? ')
 
     @staticmethod
+    def analyze_game_id_range() -> list[int]:
+        lower = InputValidation.int_within_range(0, 800, 'What is the lowest game_id to analyze? ')
+        higher = InputValidation.int_within_range(0, 800, 'What is the highest game_id to analyze? ')
+        return [lower, higher]
+
+    @staticmethod
+    def generate_price_report() -> bool:
+        return InputValidation.yes_or_no('Generate a price analysis?')
+
+    @staticmethod
+    def starting_price_analysis(show_date: bool = False, file = None) -> None:
+        print(f'{datetime.today().date().isoformat() if show_date else ""}\nStarting price analyze...', file=file)
+
+    @staticmethod
     def set_manual_option_prompt_message() -> bool:
         return InputValidation.yes_or_no('Is it going to be manual?')
 
@@ -94,9 +110,9 @@ class SteamTraderUI:
         return price, qtd
 
     @staticmethod
-    def show_item_name(item_name: str, set_number: int) -> None:
+    def show_item_name(item_name: str, set_number: int, file=None) -> None:
         set_number = int(set_number) if str(set_number) != 'nan' else ''
-        print(f" {set_number:>2}-{item_name}")
+        print(f" {set_number:>2}-{item_name}", file=file)
 
     @staticmethod
     def create_buy_order_failed() -> None:
@@ -116,15 +132,15 @@ class SteamTraderUI:
               f'Average card seller price times 3: {(3*card_price):.2f}\n')
 
     @staticmethod
-    def game_header_with_counter(game_name: str, index: int = 0) -> None:
-        print(f'\n {index+1:>2}- {game_name}')
+    def game_header_with_counter(game_name: str, index: int = 0, file = None) -> None:
+        print(f'\n {index+1:>2}- {game_name}', file=file)
 
     @staticmethod
-    def show_game_recent_buy_orders(items: list[dict], buy_orders_history: dict) -> None:
+    def show_game_recent_buy_orders(items: list[dict], buy_orders_history: dict, file=None) -> None:
         for item in items:
             item_id = item['item_id']
             buy_order = buy_orders_history[item_id][0]
-            SteamTraderUI.show_single_buy_order(item=item, buy_order=buy_order)
+            SteamTraderUI.show_single_buy_order(item=item, buy_order=buy_order, file=file)
 
     @staticmethod
     def show_item_all_buy_orders(item: dict, buy_orders: list[dict], reverse: bool = False) -> None:
@@ -134,11 +150,11 @@ class SteamTraderUI:
             SteamTraderUI.show_single_buy_order(item=item, buy_order=buy_order, show_name=False)
 
     @staticmethod
-    def show_single_buy_order(item: dict, buy_order: dict, show_name: bool = True) -> None:
+    def show_single_buy_order(item: dict, buy_order: dict, show_name: bool = True, file=None) -> None:
         item_name = item['item_name']
         set_number = int(item['set_number']) if str(item['set_number']) != 'nan' else ''
         qtd = buy_order['qtd_current']
         price = buy_order['price']
         created_at = buy_order['created_at'].date()
         name = f"{set_number:>2}-{item_name}"
-        print(f" {created_at} - {qtd:>3} @ R$ {price / 100:>5.2f}  {name if show_name else ''}")
+        print(f" {created_at} - {qtd:>3} @ R$ {price / 100:>5.2f}  {name if show_name else ''}", file=file)

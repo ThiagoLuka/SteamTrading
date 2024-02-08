@@ -16,7 +16,7 @@ class CreateBuyOrders:
         self._steam_trader = steam_trader
 
     def create_buy_orders(self) -> None:
-        cmd = SteamTraderUI.create_buy_order_options()
+        cmd: int = SteamTraderUI.create_buy_order_options()
         if cmd == 1:
             self._first_buy_orders()
         if cmd == 2:
@@ -29,6 +29,9 @@ class CreateBuyOrders:
         game_and_item_ids: dict = self._steam_trader.buy_orders.get_game_and_item_ids_without_active(item_quantity=item_quantity)
         games = SteamGames(game_ids=list(game_and_item_ids.keys()), with_items=True)
 
+        if SteamTraderUI.generate_price_report():
+            self._steam_trader.analyze_game_items_prices(game_ids=list(game_and_item_ids.keys()))
+
         for idx, game_and_item_ids_tuple in enumerate(game_and_item_ids.items()):
             game_id = game_and_item_ids_tuple[0]
             item_ids_without_active_bo = game_and_item_ids_tuple[1]
@@ -38,8 +41,6 @@ class CreateBuyOrders:
             buy_orders_history = self._steam_trader.buy_orders.get_recent_history(game_id=game_id)
 
             SteamTraderUI.game_header_with_counter(game_name=game_name, index=idx)
-            SteamTraderUI.show_game_recent_buy_orders(items=items, buy_orders_history=buy_orders_history)
-
             for idx2, item in enumerate(items):
                 item_id = item['item_id']
                 if item_id in item_ids_without_active_bo:
@@ -53,6 +54,8 @@ class CreateBuyOrders:
 
     def _first_buy_orders(self) -> None:
         game_id = int(GenericUI.get_game_id())
+        if SteamTraderUI.generate_price_report():
+            self._steam_trader.analyze_game_items_prices(game_ids=[game_id])
         game = SteamGames(game_ids=[game_id], with_items=True)
         game_market_id = game.market_id(game_id=game_id)
         items = game.get_trading_cards_and_booster_pack(game_id=game_id, foil=False)
@@ -65,6 +68,11 @@ class CreateBuyOrders:
             self._create_item_buy_order(item=item, game_market_id=game_market_id)
 
     def _recreate_buy_orders(self) -> None:
+        if SteamTraderUI.generate_price_report():
+            lower, higher = SteamTraderUI.analyze_game_id_range()
+            game_ids = self._steam_trader.get_games_allowed()[lower:higher]
+            self._steam_trader.analyze_game_items_prices(game_ids=game_ids)
+
         while True:
             game_id = int(GenericUI.get_game_id())
             self._steam_trader.update_buy_orders([game_id])

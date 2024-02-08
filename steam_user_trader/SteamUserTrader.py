@@ -2,7 +2,7 @@ from threading import Thread
 from queue import Queue, Empty
 
 from scrap_steam_services import ScrapMarketItemPage, ScrapMarketMainPage
-from steam_market_services import CreateBuyOrders, CreateSellListings, OpenGameBoosterPack
+from steam_market_services import AnalyzeItemPrices, CreateBuyOrders, CreateSellListings, OpenGameBoosterPack
 from steam_user.SteamUser import SteamUser
 from steam_user_trader.BuyOrders import BuyOrders
 from steam_user_trader.SellListings import SellListings
@@ -42,6 +42,9 @@ class SteamUserTrader(SteamUser):
         # that is awful but it's temporary. Fix it when implementing new user factor
         user_data = steam_user._SteamUser__user_data
         return cls(user_data)
+
+    def analyze_game_items_prices(self, game_ids: list[int]) -> None:
+        AnalyzeItemPrices(steam_trader=self).run(game_ids=game_ids)
 
     def update_buy_orders(self, game_ids: list[int]) -> None:
         ScrapMarketItemPage(steam_user=self).update_games_buy_orders(game_ids=game_ids)

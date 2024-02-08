@@ -10,14 +10,19 @@ if TYPE_CHECKING:
 class ItemPriceTable:
 
     def __init__(self, steam_trader: SteamUserTrader, game_market_id: str, item: dict):
-        status, response = steam_trader.web_crawler.interact(
-            'item_prices_table',
-            item_name_id=item['steam_item_name_id'],
-            game_market_id=game_market_id,
-            item_url_name=item['item_market_url_name'],
-        )
-        time.sleep(5)
-        data = response.json()
+        retries = 4
+        while retries >= 0:
+            status, response = steam_trader.web_crawler.interact(
+                'item_prices_table',
+                item_name_id=item['steam_item_name_id'],
+                game_market_id=game_market_id,
+                item_url_name=item['item_market_url_name'],
+            )
+            time.sleep(5)
+            data = response.json()
+            if 'sell_order_summary' in list(data.keys()):
+                break
+            retries -= 1
 
         if data['sell_order_summary'] == 'There are no active listings for this item.':
             self._total_for_sale = 0

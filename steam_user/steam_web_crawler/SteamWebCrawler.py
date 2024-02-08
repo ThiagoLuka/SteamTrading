@@ -15,7 +15,7 @@ class SteamWebCrawler:
         self.__set_crawler_cookies(cookies_data)
         # self.__web_session = None  # it should be implemented later
 
-    def interact(self, page_name: str, logged_in = False, **kwargs) -> (int, Union[str, requests.Response]):
+    def interact(self, page_name: str, logged_in = False, **kwargs) -> (int, Union[dict, str, requests.Response]):
 
         try:
             concrete_web_page_reference = SteamWebPage.page_names[page_name]
@@ -40,6 +40,8 @@ class SteamWebCrawler:
 
         try:
             result = web_page.interact(cookies, **kwargs)
+            if type(result) == dict:
+                return 200, result
             return result.status_code, result
         except Exception as e:
             return 500, e

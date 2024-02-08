@@ -1,3 +1,4 @@
+from steam_market_services.AnalyzeItemPrices import AnalyzeItemPrices
 from steam_market_services.CreateBuyOrders import CreateBuyOrders
 from steam_market_services.CreateSellListings import CreateSellListings
 from steam_market_services.OpenGameBoosterPack import OpenGameBoosterPack
