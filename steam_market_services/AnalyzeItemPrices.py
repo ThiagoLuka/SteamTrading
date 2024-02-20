@@ -30,7 +30,7 @@ class AnalyzeItemPrices:
             items = games.get_trading_cards_and_booster_pack(game_id=game_id, foil=False)
             buy_orders_history = self._steam_trader.buy_orders.get_recent_history(game_id=game_id)
 
-            with open(self._filename, 'a') as file:
+            with open(self._filename, 'a', encoding='utf-8') as file:
                 SteamTraderUI.game_header_with_counter(game_name=game_name, index=idx)
                 SteamTraderUI.game_header_with_counter(game_name=game_name, index=idx, file=file)
                 print(f'game_id  : {game_id}', file=file)
@@ -63,7 +63,7 @@ class AnalyzeItemPrices:
 
                 last_buy_order_price = buy_orders_history[item_id][0]['price']
 
-                with open(self._filename, 'a') as file:
+                with open(self._filename, 'a', encoding='utf-8') as file:
                     SteamTraderUI.show_item_name(item_name=item['item_name'], set_number=item['set_number'], file=file)
                     print(f'last_buy_order_price   : {last_buy_order_price}\n'
                           f'current_profit_range   : {current_range_h} - {current_range_l}\n'
