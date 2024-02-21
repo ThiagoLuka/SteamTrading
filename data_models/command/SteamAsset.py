@@ -100,7 +100,8 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         return f"""
         CREATE TEMP TABLE tmp_staging AS
         SELECT
-        	  is2.id AS item_id
+              is2.game_id AS game_id
+        	, is2.id AS item_id
         	, sa.user_id AS user_id
         	, sa.steam_asset_id AS steam_asset_id
         	, sa.marketable AS marketable 
@@ -124,7 +125,8 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         
         -- upserting new assets
         INSERT INTO {public_table} (
-        	  item_id
+              game_id
+        	, item_id
         	, user_id
         	, steam_asset_id
         	, active
@@ -138,7 +140,8 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         	, removed_at
         )
         SELECT
-        	  item_id
+              game_id
+        	, item_id
         	, user_id
         	, steam_asset_id
         	, True AS active
