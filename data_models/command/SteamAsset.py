@@ -7,7 +7,7 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         if   source == 'inventory':
             self._load_standard(user_id=kwargs['user_id'])
         elif source == 'create_sell_listing':
-            self._set_destination_price_from_create_sell_listing(
+            self._set_conclusion_price_from_create_sell_listing(
                 user_id=kwargs['user_id'],
                 steam_asset_id=kwargs['steam_asset_id'],
                 price=kwargs['price'],
@@ -28,9 +28,9 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         query = self._upsert_all_assets_query()
         self._db_execute(query=query)
 
-    def _set_destination_price_from_create_sell_listing(self, user_id: int, steam_asset_id: str, price: int, manual: bool) -> None:
+    def _set_conclusion_price_from_create_sell_listing(self, user_id: int, steam_asset_id: str, price: int, manual: bool) -> None:
         public = self.table_name(table_type='public')
-        query = self._set_destination_price_from_create_sell_listing_query(
+        query = self._set_conclusion_price_from_create_sell_listing_query(
             public_table=public,
             user_id=user_id,
             steam_asset_id=steam_asset_id,
@@ -134,8 +134,8 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         	, tradable
         	, origin
         	, origin_price
-        	, destination
-        	, destination_price
+        	, conclusion
+        	, conclusion_price
         	, created_at
         	, removed_at
         )
@@ -149,8 +149,8 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         	, tradable
         	, 'Undefined' AS origin
         	, 0 AS origin_price
-        	, 'Undefined' AS destination
-        	, 0 AS destination_price
+        	, 'Undefined' AS conclusion
+        	, 0 AS conclusion_price
         	, created_at
         	, NULL AS removed_at
         FROM tmp_staging
@@ -168,19 +168,19 @@ class SteamAsset(BasePersistenceModel, name='steam_asset'):
         """
 
     @staticmethod
-    def _set_destination_price_from_create_sell_listing_query(
+    def _set_conclusion_price_from_create_sell_listing_query(
         public_table: str,
         user_id: int,
         steam_asset_id: str,
         price: int,
         manual: bool,
     ) -> str:
-        destination = 'Sell Listing - M' if manual else 'Sell Listing - A'
+        conclusion = 'Sell Listing - M' if manual else 'Sell Listing - A'
         return f"""
         UPDATE {public_table}
         SET
-              destination = '{destination}'
-            , destination_price = {price}
+              conclusion = '{conclusion}'
+            , conclusion_price = {price}
             , active = False
             , removed_at = NOW()::TIMESTAMP
         WHERE

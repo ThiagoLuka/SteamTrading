@@ -142,11 +142,11 @@ class SteamAssetOrigin(BasePersistenceModel, name='steam_asset_origin'):
         		FROM {asset_table} sa 
         		INNER JOIN {item_table} si ON sa.item_id = si.id 
         		WHERE
-        			not active 
-        			AND user_id = {user_id}
+        			not sa.active 
+        			AND sa.user_id = {user_id}
         			AND si.game_id = {game_id}
         			AND si.steam_item_type_id = 5  -- booster pack
-        			AND destination = 'Undefined'
+        			AND sa.conclusion = 'Undefined'
         		LIMIT {booster_packs_opened}
         	),
         	cards_from_booster_pack AS (
@@ -157,16 +157,16 @@ class SteamAssetOrigin(BasePersistenceModel, name='steam_asset_origin'):
         		FROM {asset_table} sa 
         		INNER JOIN {item_table} si ON sa.item_id = si.id
         		WHERE
-        			active
-        			AND user_id = {user_id}
+        			sa.active
+        			AND sa.user_id = {user_id}
         			AND si.game_id = {game_id}
         			AND si.steam_item_type_id = 2 -- trading card
-        			AND origin = 'Undefined'
+        			AND sa.origin = 'Undefined'
         	)
         SELECT 
         	obps.bp_id AS booster_pack_asset_id,
         	cfbp.tc_id AS trading_card_asset_id,
-        	obps.origin_price AS booster_pack_destination_price,
+        	obps.origin_price AS booster_pack_conclusion_price,
         	CASE 
         		WHEN card_number = 1 THEN ( obps.origin_price / 3 ) + ( obps.origin_price % 3 ) 
         		ELSE obps.origin_price / 3
@@ -188,13 +188,13 @@ class SteamAssetOrigin(BasePersistenceModel, name='steam_asset_origin'):
             distinct_booster_pack AS (
                 SELECT
                     DISTINCT(booster_pack_asset_id) AS asset_id,
-                    booster_pack_destination_price
+                    booster_pack_conclusion_price
                 FROM assets_to_update
             )
         UPDATE {asset_table} sa
         SET
-        	  destination = 'Booster Pack opened'
-        	, destination_price = booster_pack_destination_price
+        	  conclusion = 'Booster Pack opened'
+        	, conclusion_price = booster_pack_conclusion_price
         FROM distinct_booster_pack
         WHERE sa.id = distinct_booster_pack.asset_id;
         

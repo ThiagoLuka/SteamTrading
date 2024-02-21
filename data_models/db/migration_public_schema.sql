@@ -133,8 +133,8 @@ CREATE TABLE IF NOT EXISTS public.steam_asset (
 	, tradable bool NOT NULL
 	, origin text NOT NULL
 	, origin_price int4 NOT NULL
-	, destination text NOT NULL
-	, destination_price int4 NOT NULL
+	, conclusion text NOT NULL
+	, conclusion_price int4 NOT NULL
 	, created_at timestamp NOT NULL
 	, removed_at timestamp NULL
 	, CONSTRAINT steam_asset_pkey PRIMARY KEY (id)
