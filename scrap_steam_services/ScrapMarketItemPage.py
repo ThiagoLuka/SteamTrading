@@ -13,9 +13,10 @@ if TYPE_CHECKING:
 
 class ScrapMarketItemPage:
 
-    def __init__(self, steam_user: SteamUserTrader):
+    def __init__(self, steam_user: SteamUserTrader, retries: int = 7, wait_time: int = 10):
         self.__steam_user = steam_user
-        self.__retries = 5
+        self.__retries = retries
+        self.__wait_time = wait_time
 
     def update_games_buy_orders(self, game_ids: list[int]) -> None:
         games = SteamGames(game_ids=game_ids, with_items=True)
@@ -28,7 +29,7 @@ class ScrapMarketItemPage:
             for index2, item in enumerate(items):
                 retries_left = self.__retries
                 while True:
-                    time.sleep(7)  # avoiding too many requests
+                    time.sleep(self.__wait_time)  # avoiding too many requests
                     try:
                         market_item_page_cleaner = self._full_extraction(
                             game_market_id=games.market_id(game_id=game_id),
