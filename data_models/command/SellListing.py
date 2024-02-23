@@ -40,8 +40,9 @@ class SellListing(BasePersistenceModel, name='sell_listing'):
             	)
             UPDATE {public} psl 
             SET
-            	active = False,
-            	removed_at = NOW()::TIMESTAMP
+            	  active = False
+            	, conclusion = 'Vanished'
+            	, removed_at = NOW()::TIMESTAMP
             FROM to_inactivate
             WHERE psl.id = to_inactivate.id;
             
@@ -54,35 +55,42 @@ class SellListing(BasePersistenceModel, name='sell_listing'):
             
             -- upserting staging to prod
             INSERT INTO {public} (
-                  steam_sell_listing_id
-                , asset_id
-                , user_id
-                , active
-                , price_buyer
-                , price_to_receive
-                , steam_created_at
-                , created_at
-                , removed_at
+	              game_id
+	            , item_id
+	            , asset_id
+	            , user_id
+	            , steam_sell_listing_id
+	            , active 
+	            , price_buyer  
+	            , price_to_receive  
+	            , conclusion  
+	            , steam_created_at  
+	            , created_at  
+	            , removed_at 
             )
             SELECT
-	            ssl.steam_sell_listing_id,
-	            isa.id AS asset_id,
-	            ssl.user_id,
-	            True AS active,
-	            ssl.price_buyer,
-	            ssl.price_to_receive,
-	            ssl.steam_created_at,
-	            ssl.created_at,
-	            NULL AS removed_at
+	              isa.game_id
+	            , isa.item_id
+	            , isa.id AS asset_id
+	            , isa.user_id
+	            , ssl.steam_sell_listing_id
+	            , True AS active  
+	            , ssl.price_buyer  
+	            , ssl.price_to_receive  
+	            , 'Undefined' AS conclusion  
+	            , ssl.steam_created_at  
+	            , ssl.created_at  
+	            , NULL AS removed_at 
             FROM {staging} ssl
-            LEFT JOIN {inventory_table_name} isa
-                ON isa.user_id = ssl.user_id
+            INNER JOIN {inventory_table_name} isa ON
+                isa.user_id = ssl.user_id
                 AND isa.steam_asset_id = ssl.steam_asset_id
             ON CONFLICT (steam_sell_listing_id)
             DO UPDATE
             SET
-            	active = True,
-            	removed_at = NULL;
+            	  active = True
+            	, conclusion = 'Undefined'
+            	, removed_at = NULL;
             
             TRUNCATE TABLE {staging}; 
             
