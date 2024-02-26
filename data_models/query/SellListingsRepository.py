@@ -10,7 +10,7 @@ class SellListingsRepository(BaseQueryRepository):
         SELECT
               sl.id
             , sl.game_id
-            , sl.id AS item_id
+            , sl.item_id AS item_id
             , sl.asset_id AS asset_id
             , sl.steam_sell_listing_id
             , sl.price_buyer
