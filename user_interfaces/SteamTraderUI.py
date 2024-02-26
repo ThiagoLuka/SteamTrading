@@ -13,11 +13,12 @@ class SteamTraderUI:
             '2 - Update buy orders\n'
             '3 - Create new buy orders\n'
             '4 - Open booster packs\n'
-            '5 - Update sell listings\n'
-            '6 - Sell cards of a game\n'
+            '5 - Remove old sell listings\n'
+            '6 - Update sell listings\n'
+            '7 - Sell cards of a game\n'
             '0 - Back to main menu'
         )
-        return InputValidation.int_within_range(0, 6)
+        return InputValidation.int_within_range(0, 7)
 
     @staticmethod
     def overview_marketable_cards(summary: dict, inv_total_size: int) -> None:
@@ -158,3 +159,13 @@ class SteamTraderUI:
         created_at = buy_order['created_at'].date()
         name = f"{set_number:>2}-{item_name}"
         print(f" {created_at} - {qtd:>3} @ R$ {price / 100:>5.2f}  {name if show_name else ''}", file=file)
+
+    @staticmethod
+    def remove_old_sell_listing() -> None:
+        print('\nRemoving old sell listings...')
+
+    @staticmethod
+    def show_item_info_remove_sell_listing(item_name: str, game_name: str, created_at: datetime.date, price_to_receive: int) -> None:
+        print(f'\nRemoving: {item_name} - {game_name}'
+              f'\nCreated : {created_at}'
+              f'\nPrice   : {price_to_receive}\n')

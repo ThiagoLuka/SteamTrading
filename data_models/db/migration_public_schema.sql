@@ -208,3 +208,11 @@ CREATE TABLE IF NOT EXISTS public.asset_from_booster_pack (
     , CONSTRAINT asset_from_booster_pack_asset_id_fkey FOREIGN KEY (asset_id) REFERENCES public.steam_asset(id)
     , CONSTRAINT asset_from_booster_pack_booster_pack_asset_id_id_fkey FOREIGN KEY (booster_pack_asset_id) REFERENCES public.steam_asset(id)
 );
+
+CREATE TABLE IF NOT EXISTS public.asset_from_sell_listing (
+      asset_id int8 NOT NULL
+    , sell_listing_id int4 NOT NULL
+    , CONSTRAINT asset_from_sell_listing_asset_id UNIQUE (asset_id)
+    , CONSTRAINT asset_from_sell_listing_asset_id_fkey FOREIGN KEY (asset_id) REFERENCES public.steam_asset(id)
+    , CONSTRAINT asset_from_sell_listing_sell_listing_id_fkey FOREIGN KEY (sell_listing_id) REFERENCES public.sell_listing(id)
+);

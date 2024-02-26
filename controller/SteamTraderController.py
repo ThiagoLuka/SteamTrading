@@ -23,8 +23,10 @@ class SteamTraderController:
             if command == 4:
                 self.open_booster_packs()
             if command == 5:
-                self.update_sell_listings()
+                self.remove_old_sell_listings()
             if command == 6:
+                self.update_sell_listings()
+            if command == 7:
                 self.create_sell_listings()
 
             if command == 0:
@@ -65,3 +67,6 @@ class SteamTraderController:
         manual = SteamTraderUI.set_manual_option_prompt_message()
         game_quantity = SteamTraderUI.sell_cards_prompt_message()
         self._steam_trader.create_sell_listings(manual=manual, game_quantity=game_quantity)
+
+    def remove_old_sell_listings(self) -> None:
+        self._steam_trader.remove_sell_listings()

@@ -4,8 +4,10 @@ from .BasePersistenceModel import BasePersistenceModel
 class SellListing(BasePersistenceModel, name='sell_listing'):
 
     def save(self, source: str, **kwargs) -> None:
-        if source == 'main_market_page':
+        if   source == 'main_market_page':
             self._load_standard(user_id=kwargs['user_id'])
+        elif source == 'remove_sell_listing':
+            self._set_to_inactive(steam_sell_listing_id=kwargs['steam_sell_listing_id'])
 
     @staticmethod
     def table_name(table_type: str) -> str:
@@ -19,6 +21,19 @@ class SellListing(BasePersistenceModel, name='sell_listing'):
         self._df.drop_duplicates(subset='steam_sell_listing_id', inplace=True)
         self._insert_into_staging(df=self._df, staging_table_name=self.table_name(table_type='staging'))
         query = self._upsert_sell_listings_query()
+        self._db_execute(query=query)
+
+    def _set_to_inactive(self, steam_sell_listing_id: str) -> None:
+        public = self.table_name(table_type='public')
+        query = f"""
+        UPDATE {public} sl
+        SET
+              active = False
+            , conclusion = 'Canceled'
+            , removed_at = NOW()::TIMESTAMP
+        WHERE
+            steam_sell_listing_id = '{steam_sell_listing_id}';
+        """
         self._db_execute(query=query)
 
     def _upsert_sell_listings_query(self) -> str:

@@ -29,6 +29,7 @@ class SteamAssetOrigin(BasePersistenceModel, name='steam_asset_origin'):
         return {
             'asset_from_buy_order': 'public.asset_from_buy_order',
             'asset_from_booster_pack': 'public.asset_from_booster_pack',
+            'asset_from_sell_listing': 'public.asset_from_sell_listing',
         }.get(table_type, '')
 
     def _from_buy_order(self, asset_table: str, user_id: int, item_id: int, new_quantity: int) -> None:
@@ -58,11 +59,18 @@ class SteamAssetOrigin(BasePersistenceModel, name='steam_asset_origin'):
         self._db_execute(query=query)
 
     def _from_sell_listing(self, asset_table: str) -> None:
-        pass
+        asset_from_sell_listing_table = self.table_name('asset_from_sell_listing')
+        sell_listing_table = self.models['sell_listing'].table_name(table_type='public')
+        query = self._from_sell_listing_query(
+            asset_from_sell_listing_table=asset_from_sell_listing_table,
+            asset_table=asset_table,
+            sell_listing_table=sell_listing_table,
+        )
+        self._db_execute(query=query)
 
     @staticmethod
     def _from_buy_order_query(
-        asset_from_buy_order_table,
+        asset_from_buy_order_table: str,
         asset_table: str,
         buy_order_table: str,
         user_id: int,
@@ -122,7 +130,7 @@ class SteamAssetOrigin(BasePersistenceModel, name='steam_asset_origin'):
 
     @staticmethod
     def _from_booster_pack_query(
-        asset_from_booster_pack_table,
+        asset_from_booster_pack_table: str,
         asset_table: str,
         item_table: str,
         user_id: int,
@@ -207,5 +215,62 @@ class SteamAssetOrigin(BasePersistenceModel, name='steam_asset_origin'):
         
         DROP TABLE assets_to_update;
         
+        COMMIT;
+        """
+
+    @staticmethod
+    def _from_sell_listing_query(
+        asset_from_sell_listing_table: str,
+        asset_table: str,
+        sell_listing_table: str,
+    ) -> str:
+        return f"""
+        START TRANSACTION;
+        
+        CREATE TEMP TABLE assets_to_update AS
+        WITH
+            canceled_sell_listing_not_updated AS (
+                SELECT
+                      sl.id AS sell_listing_id
+                    , sl.item_id
+                    , sa.origin_price
+        			, ROW_NUMBER() OVER (PARTITION BY sl.item_id ORDER BY sl.created_at DESC) AS item_number
+                FROM {sell_listing_table} sl
+                LEFT JOIN {asset_from_sell_listing_table} asfl ON sl.id = asfl.sell_listing_id
+                INNER JOIN {asset_table} sa ON sl.asset_id = sa.id
+                WHERE
+                    sl.conclusion = 'Canceled'
+                    AND asfl.asset_id IS NULL
+            ),
+            asset_with_origin_undefined AS (
+                SELECT
+                      sa.id AS asset_id
+                    , sa.item_id
+                    , ROW_NUMBER() OVER (PARTITION BY sa.item_id ORDER BY sa.created_at DESC) AS item_number
+                FROM {asset_table} sa
+                WHERE origin = 'Undefined'
+            )
+        SELECT
+              asset_id
+            , sell_listing_id
+        FROM canceled_sell_listing_not_updated csl
+        INNER JOIN asset_with_origin_undefined aou ON
+            csl.item_id = aou.item_id
+            AND csl.item_number = aou.item_number;
+        
+        INSERT INTO {asset_from_sell_listing_table} (
+        	asset_id, sell_listing_id
+        )
+        SELECT
+        	asset_id, sell_listing_id
+        FROM assets_to_update;
+        
+        UPDATE {asset_table} sa
+        SET
+              origin = 'Canceled Sell Listing'
+            , origin_price = origin_price
+        FROM assets_to_update
+        WHERE sa.id = assets_to_update.asset_id;
+
         COMMIT;
         """

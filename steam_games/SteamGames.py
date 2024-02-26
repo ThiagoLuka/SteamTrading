@@ -61,6 +61,16 @@ class SteamGames:
         bp_list = bp[item_keys].to_dict('records')
         return tcs_list + bp_list
 
+    def get_item_market_url_name(self, item_id: int) -> str:
+        df = self._df_items
+        market_url_name = df.loc[df['item_id'] == item_id, 'item_market_url_name'].values[0]
+        return market_url_name
+
+    def get_item_name(self, item_id: int) -> str:
+        df = self._df_items
+        item_name = df.loc[df['item_id'] == item_id, 'item_name'].values[0]
+        return item_name
+
     def _load_data(self, game_ids: list, with_items: bool) -> None:
         self._with_items = with_items
         columns = ['id', 'name', 'market_id', 'has_trading_cards']
