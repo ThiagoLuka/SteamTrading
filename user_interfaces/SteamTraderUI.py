@@ -10,15 +10,16 @@ class SteamTraderUI:
         print(
             '\n-- MENU STEAM TRADER --\n'
             '1 - Overview: marketable cards by game\n'
-            '2 - Update buy orders\n'
-            '3 - Create new buy orders\n'
-            '4 - Open booster packs\n'
-            '5 - Remove old sell listings\n'
-            '6 - Update sell listings\n'
-            '7 - Sell cards of a game\n'
+            '2 - Update badges\n'
+            '3 - Update buy orders\n'
+            '4 - Create new buy orders\n'
+            '5 - Open booster packs\n'
+            '6 - Remove old sell listings\n'
+            '7 - Update sell listings\n'
+            '8 - Sell cards of a game\n'
             '0 - Back to main menu'
         )
-        return InputValidation.int_within_range(0, 7)
+        return InputValidation.int_within_range(0, 8)
 
     @staticmethod
     def overview_marketable_cards(summary: dict, inv_total_size: int) -> None:

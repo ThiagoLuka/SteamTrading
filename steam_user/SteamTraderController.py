@@ -10,6 +10,7 @@ class SteamTraderController:
 
     def __init__(self, steam_user_trader: SteamUserTrader):
         self._steam_trader = steam_user_trader
+        self._steam_trader.start_market_actions_queue()
 
     def run_ui(self) -> None:
         while True:
@@ -17,23 +18,23 @@ class SteamTraderController:
             if command == 1:
                 self.overview_marketable_cards()
             if command == 2:
-                self.update_buy_orders()
+                self.update_user_badge()
             if command == 3:
-                self.create_buy_orders()
+                self.update_buy_orders()
             if command == 4:
-                self.open_booster_packs()
+                self.create_buy_orders()
             if command == 5:
-                self.remove_old_sell_listings()
+                self.open_booster_packs()
             if command == 6:
-                self.update_sell_listings()
+                self.remove_old_sell_listings()
             if command == 7:
+                self.update_sell_listings()
+            if command == 8:
                 self.create_sell_listings()
 
             if command == 0:
-                self._steam_trader.end_queue()
-                self._steam_trader.update_inventory()
-                self._steam_trader.update_sell_listings()
-                return None
+                self._steam_trader.end_market_actions_queue()
+                return
 
     def overview_marketable_cards(self) -> None:
         if GenericUI.update_inventory():
@@ -43,6 +44,9 @@ class SteamTraderController:
         summary_qtd_by_game = {game_id_and_name[game_id]: qtd for game_id, qtd in summary_qtd_by_game.items()}
         inventory_size = self._steam_trader.inventory.size()
         SteamTraderUI.overview_marketable_cards(summary=summary_qtd_by_game, inv_total_size=inventory_size)
+
+    def update_user_badge(self) -> None:
+        self._steam_trader.update_badges()
 
     def update_buy_orders(self) -> None:
         n_games_outdate = SteamTraderUI.update_buy_orders_prompt_message(option='outdated')
@@ -63,10 +67,10 @@ class SteamTraderController:
         games_quantity = SteamTraderUI.open_booster_packs()
         self._steam_trader.open_booster_packs(games_quantity=games_quantity)
 
+    def remove_old_sell_listings(self) -> None:
+        self._steam_trader.remove_sell_listings()
+
     def create_sell_listings(self) -> None:
         manual = SteamTraderUI.set_manual_option_prompt_message()
         game_quantity = SteamTraderUI.sell_cards_prompt_message()
         self._steam_trader.create_sell_listings(manual=manual, game_quantity=game_quantity)
-
-    def remove_old_sell_listings(self) -> None:
-        self._steam_trader.remove_sell_listings()

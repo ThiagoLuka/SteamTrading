@@ -25,11 +25,6 @@ class SteamUserTrader(SteamUser):
         self._sell_listings = SellListings(user_id=self.user_id)
         self.cards_sold_count = 0
         self._market_actions_queue = Queue()
-        market_actions_thread = Thread(
-            target=self._market_actions_queue_task_handler,
-            daemon=True,
-        )
-        market_actions_thread.start()
 
     @property
     def buy_orders(self):
@@ -43,7 +38,14 @@ class SteamUserTrader(SteamUser):
     def market_actions_queue(self):
         return self._market_actions_queue
 
-    def end_queue(self) -> None:
+    def start_market_actions_queue(self) -> None:
+        market_actions_thread = Thread(
+            target=self._market_actions_queue_task_handler,
+            daemon=True,
+        )
+        market_actions_thread.start()
+
+    def end_market_actions_queue(self) -> None:
         self._market_actions_queue.join()
 
     @classmethod
