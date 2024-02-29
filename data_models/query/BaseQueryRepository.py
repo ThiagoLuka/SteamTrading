@@ -9,6 +9,7 @@ class BaseQueryRepository:
     def query_tables(table_type: str) -> str:
         return {
             'game': 'public.steam_game',
+            'game_discovery': 'lookup.steam_all_apps',
             'user': 'public.steam_user',
             'user_game': 'public.steam_user_marketable_game',
             'bagde_game': 'public.game_badges',

@@ -77,3 +77,14 @@ class SteamGamesRepository(BaseQueryRepository):
         """
         result = cls._db_execute(query=query)
         return result[0][0]
+
+    @classmethod
+    def get_all_discovered_app_ids(cls) -> list[tuple]:
+        game_discovery_table = cls.query_tables(table_type='game_discovery')
+        query = f"""
+            SELECT app_id
+            FROM {game_discovery_table} saa;
+        """
+        result = cls._db_execute(query=query)
+        return result
+

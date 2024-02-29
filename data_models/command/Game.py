@@ -10,12 +10,15 @@ class Game(BasePersistenceModel, name='game'):
             self._load_standard(update_game_name=kwargs['update_game_name'])
         elif source == 'profile_game_cards':
             self._set_has_no_trading_cards(game_id=kwargs['game_id'])
+        elif source == 'discovery':
+            self._add_new_discovered_app()
 
     @staticmethod
     def table_name(table_type: str) -> str:
         return {
             'public': 'public.steam_game',
             'staging': 'staging.game',
+            'discovery': 'lookup.steam_all_apps',
         }.get(table_type, '')
 
     def _load_standard(self, update_game_name: bool) -> None:
@@ -28,6 +31,9 @@ class Game(BasePersistenceModel, name='game'):
     def _set_has_no_trading_cards(self, game_id: int) -> None:
         query = self._set_has_no_trading_cards_query(game_id=game_id)
         self._db_execute(query=query)
+
+    def _add_new_discovered_app(self) -> None:
+        self._insert_into_staging(df=self._df, staging_table_name=self.table_name(table_type='discovery'))
 
     def _upsert_game_query(self, update_game_name: bool) -> str:
         public = self.table_name(table_type='public')

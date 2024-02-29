@@ -1,1 +1,2 @@
 from steam_games.SteamGames import SteamGames
+from steam_games.SteamGamesDiscovery import SteamGamesDiscovery

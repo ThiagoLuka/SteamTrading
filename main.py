@@ -4,6 +4,7 @@ from user_interfaces.GenericUI import GenericUI
 from steam_user.SteamUserManager import SteamUserManager
 from steam_user.SteamTraderController import SteamTraderController
 from steam_user_trader.SteamUserTrader import SteamUserTrader
+from steam_games.SteamGamesDiscovery import SteamGamesDiscovery
 
 
 class MainController(metaclass=Singleton):
@@ -21,6 +22,8 @@ class MainController(metaclass=Singleton):
                 GenericUI.not_implemented()
             if command == 2:
                 SteamTraderController(steam_user_trader=self._steam_user_trader).run_ui()
+            if command == 3:
+                SteamGamesDiscovery().discover_new_apps()
 
             if command == 0:
                 MainUI.goodbye()

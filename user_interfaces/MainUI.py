@@ -9,9 +9,10 @@ class MainUI:
             '\n-- MAIN MENU --\n'
             '1 - Regular workflow by user\n'
             '2 - Individual functions menu\n'
+            '3 - Discover new steam apps\n'
             '0 - Exit'
         )
-        return InputValidation.int_within_range(0, 2)
+        return InputValidation.int_within_range(0, 3)
 
     @staticmethod
     def user_loaded(user_name: str, steam_level: int):
