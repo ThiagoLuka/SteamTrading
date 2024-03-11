@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+import random
 import time
 
 from user_interfaces.GenericUI import GenericUI
@@ -19,6 +20,7 @@ class ScrapMarketItemPage:
         self.__wait_time = wait_time
 
     def update_games_buy_orders(self, game_ids: list[int]) -> None:
+        random.shuffle(game_ids)
         games = SteamGames(game_ids=game_ids, with_items=True)
         for index, game_id in enumerate(game_ids):
             self.__steam_user.update_inventory()

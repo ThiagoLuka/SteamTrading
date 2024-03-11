@@ -6,9 +6,10 @@ from user_interfaces.InputValidation import InputValidation
 class SteamTraderUI:
 
     @staticmethod
-    def run() -> int:
+    def run(steam_user: str) -> int:
         print(
             '\n-- MENU STEAM TRADER --\n'
+            f'Current user: {steam_user}\n'
             '1 - Overview: marketable cards by game\n'
             '2 - Update badges\n'
             '3 - Update buy orders\n'
@@ -22,9 +23,12 @@ class SteamTraderUI:
         return InputValidation.int_within_range(0, 8)
 
     @staticmethod
-    def overview_marketable_cards(summary: dict, inv_total_size: int) -> None:
+    def get_minimum_cards_for_inventory_overview() -> int:
         min_cards_text = "Don't show games with less than x cards: "
-        minimum_cards = InputValidation.int_within_range(0, 100, min_cards_text)
+        return InputValidation.int_within_range(0, 100, min_cards_text)
+
+    @staticmethod
+    def overview_marketable_cards(summary: dict, inv_total_size: int, minimum_cards: int) -> None:
         total_shown = 0
         print('\nCards ||     Game')
         for game_name, items_qtd in summary.items():
@@ -88,7 +92,7 @@ class SteamTraderUI:
 
     @staticmethod
     def set_manual_option_prompt_message() -> bool:
-        return InputValidation.yes_or_no('Is it going to be manual?')
+        return InputValidation.yes_or_no('Sell cards manually?')
 
     @staticmethod
     def show_marketable_items_to_sell_summary(items: list, summary: dict) -> None:

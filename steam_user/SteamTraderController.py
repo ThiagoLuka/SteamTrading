@@ -1,5 +1,3 @@
-import random
-
 from user_interfaces.GenericUI import GenericUI
 from user_interfaces.SteamTraderUI import SteamTraderUI
 from steam_user_trader.SteamUserTrader import SteamUserTrader
@@ -14,7 +12,8 @@ class SteamTraderController:
 
     def run_ui(self) -> None:
         while True:
-            command = SteamTraderUI.run()
+            command = SteamTraderUI.run(steam_user=self._steam_trader.name)
+
             if command == 1:
                 self.overview_marketable_cards()
             if command == 2:
@@ -36,14 +35,22 @@ class SteamTraderController:
                 self._steam_trader.end_market_actions_queue()
                 return
 
-    def overview_marketable_cards(self) -> None:
-        if GenericUI.update_inventory():
-            self._steam_trader.update_inventory()
+    def overview_marketable_cards(self, get_user_inputs: bool = True) -> None:
+        if get_user_inputs:
+            if GenericUI.update_inventory():
+                self._steam_trader.update_inventory()
+            minimum_cards = SteamTraderUI.get_minimum_cards_for_inventory_overview()
+        else:
+            minimum_cards = 50
         summary_qtd_by_game = self._steam_trader.inventory.summary_qtd(by='game', marketable=True)
         game_id_and_name = SteamGames(game_ids=list(summary_qtd_by_game.keys())).id_name_dict()
         summary_qtd_by_game = {game_id_and_name[game_id]: qtd for game_id, qtd in summary_qtd_by_game.items()}
         inventory_size = self._steam_trader.inventory.size()
-        SteamTraderUI.overview_marketable_cards(summary=summary_qtd_by_game, inv_total_size=inventory_size)
+        SteamTraderUI.overview_marketable_cards(
+            summary=summary_qtd_by_game,
+            inv_total_size=inventory_size,
+            minimum_cards=minimum_cards,
+        )
 
     def update_user_badge(self) -> None:
         self._steam_trader.update_badges()
@@ -54,7 +61,6 @@ class SteamTraderController:
         game_ids_0 = self._steam_trader.buy_orders.get_game_ids_with_most_outdated_orders(quantity=n_games_outdate)
         game_ids_1 = self._steam_trader.inventory.get_game_ids_with_most_undefined(quantity=n_games_undefined)
         game_ids = list(set(game_ids_0 + game_ids_1))
-        random.shuffle(game_ids)
         self._steam_trader.update_buy_orders(game_ids=game_ids)
 
     def update_sell_listings(self) -> None:
