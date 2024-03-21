@@ -18,11 +18,14 @@ class OpenGameBoosterPack:
         self._steam_trader = steam_user
         self._price_rate_to_open_bp = 1.1
 
-    def run(self, games_quantity: int) -> None:
+    def run(self, games_quantity: int = 0, allowed_game_ids: list = None) -> None:
         self._steam_trader.update_inventory()
 
-        inv_game_ids: list[int] = self._steam_trader.inventory.get_all_game_ids()
-        games = SteamGames(inv_game_ids, with_items=True)
+        if not allowed_game_ids:
+            allowed_game_ids: list[int] = self._steam_trader.inventory.get_all_game_ids()
+        else:
+            games_quantity = len(allowed_game_ids)
+        games = SteamGames(allowed_game_ids, with_items=True)
         bp_item_ids: list[int] = games.get_booster_pack_item_ids()
         game_ids = self._steam_trader.inventory.get_game_ids(item_ids=bp_item_ids, qtd=games_quantity, sort='created_at')
 

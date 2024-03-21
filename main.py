@@ -26,14 +26,12 @@ class MainController(metaclass=Singleton):
                 n_games_outdate = SteamTraderUI.update_buy_orders_prompt_message(option='outdated')
                 self.update_workflow(steam_user=steam_user, n_games_to_update=n_games_outdate)
             if command == 3:
-                n_games_outdate = SteamTraderUI.update_buy_orders_prompt_message(option='outdated')
                 self.sell_cards_workflow(
                     steam_user=steam_user,
-                    open_bp_game_quantity=SteamTraderUI.open_booster_packs(),
                     sell_manual=SteamTraderUI.set_manual_option_prompt_message(),
                     sell_game_quantity=SteamTraderUI.sell_cards_prompt_message(),
                 )
-                self.update_workflow(steam_user=steam_user, n_games_to_update=n_games_outdate)
+                self.update_workflow(steam_user=steam_user, n_games_to_update=0)
             if command == 4:
                 self.create_buy_order_workflow(steam_user=steam_user)
             if command == 5:
@@ -69,12 +67,9 @@ class MainController(metaclass=Singleton):
     @staticmethod
     def sell_cards_workflow(
         steam_user: SteamUserTrader,
-        open_bp_game_quantity: int,
         sell_manual: bool,
         sell_game_quantity: int,
     ) -> None:
-        steam_user.open_booster_packs(games_quantity=open_bp_game_quantity)
-
         steam_user.start_market_actions_queue()
         steam_user.create_sell_listings(manual=sell_manual, game_quantity=sell_game_quantity)
         steam_user.end_market_actions_queue()

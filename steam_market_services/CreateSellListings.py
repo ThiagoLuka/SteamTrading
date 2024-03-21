@@ -18,11 +18,7 @@ class CreateSellListings:
         self._manual = manual
 
     def create_sell_listings(self, game_quantity: int) -> None:
-        games_allowed = self._steam_trader.get_games_allowed()
-        game_ids = self._steam_trader.inventory.get_game_ids_with_marketable_items(
-            game_quantity=game_quantity,
-            games_allowed=games_allowed,
-        )
+        game_ids = self.get_game_ids(game_quantity=game_quantity)
         games = SteamGames(game_ids=game_ids, with_items=True)
         inventory_summary = self._steam_trader.inventory.summary_qtd(by='item', marketable=True)
 
@@ -42,6 +38,14 @@ class CreateSellListings:
                     game_id=game_id,
                     inventory_summary=inventory_summary,
                 )
+
+    def get_game_ids(self, game_quantity: int) -> list[int]:
+        games_allowed = self._steam_trader.get_games_allowed()
+        game_ids = self._steam_trader.inventory.get_game_ids_with_marketable_items(
+            game_quantity=game_quantity,
+            games_allowed=games_allowed,
+        )
+        return game_ids
 
     def _manual_item_create_sell_listing(self, games: SteamGames, game_id: int, inventory_summary: dict) -> None:
         items = games.get_trading_cards_and_booster_pack(game_id=game_id, foil=False)

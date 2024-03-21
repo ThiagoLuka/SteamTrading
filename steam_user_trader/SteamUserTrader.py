@@ -70,14 +70,20 @@ class SteamUserTrader(SteamUser):
         self.buy_orders.reload_current()
 
     def create_sell_listings(self, manual: bool, game_quantity: int) -> None:
-        CreateSellListings(steam_trader=self, manual=manual).create_sell_listings(game_quantity=game_quantity)
+        create_sell_listings_service = CreateSellListings(steam_trader=self, manual=manual)
+        game_ids = create_sell_listings_service.get_game_ids(game_quantity=game_quantity)
+        self.open_booster_packs(allowed_game_ids=game_ids)
+        create_sell_listings_service.create_sell_listings(game_quantity=game_quantity)
         self.sell_listings.reload_current()
 
     def remove_sell_listings(self) -> None:
         RemoveSellListings(steam_trader=self).older_than(days_old=140)
 
-    def open_booster_packs(self, games_quantity: int) -> None:
-        OpenGameBoosterPack(steam_user=self).run(games_quantity=games_quantity)
+    def open_booster_packs(self, games_quantity: int = 0, allowed_game_ids: list = None) -> None:
+        OpenGameBoosterPack(steam_user=self).run(
+            games_quantity=games_quantity,
+            allowed_game_ids=allowed_game_ids,
+        )
         self.update_inventory()
 
     def _market_actions_queue_task_handler(self) -> None:
