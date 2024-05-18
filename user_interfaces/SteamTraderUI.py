@@ -97,8 +97,7 @@ class SteamTraderUI:
     @staticmethod
     def show_marketable_items_to_sell_summary(items: list, summary: dict) -> None:
         total_cards = 0
-        print('\nItems to sell:')
-        print('Cards ||     Name')
+        print('\nCards ||     Name')
         for item_id, item_count in summary.items():
             item = list(filter(lambda steam_item: steam_item['item_id'] == item_id, items))[0]
             print(f"{item_count:>4}  || {item['item_name']}")
