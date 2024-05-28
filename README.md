@@ -18,7 +18,6 @@ I migth wrap it all up using docker one day, but since I mostly use it running l
 
 ## Reflection
 
-Aimed overall structure:
+Overall structure:
 
-![Captura de tela 2023-12-10 204653](https://github.com/ThiagoLuka/SteamTrading/assets/7564094/ac2f6ebe-68e5-43ef-acd9-c88520f59ade)
-
+![Captura de tela 2024-05-28 080827](https://github.com/ThiagoLuka/SteamTrading/assets/7564094/9217aded-bcb3-449d-8666-4a1575e62503)
